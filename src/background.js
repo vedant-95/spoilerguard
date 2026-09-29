@@ -67,17 +67,29 @@ function createMenus() {
   });
 }
 
+/*
+ * Menus survive worker restarts, and rebuilding them on every boot tears them
+ * down while a click that just woke the worker is still being delivered, which
+ * swallowed the click. chrome.storage.session is cleared when the extension
+ * reloads, so this still rebuilds after an unpacked reload.
+ */
+async function ensureMenus() {
+  const { menusReady } = await chrome.storage.session.get('menusReady');
+  if (menusReady) return;
+  await chrome.storage.session.set({ menusReady: true });
+  createMenus();
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   await seedStarterPacks();
-  createMenus();
+  await chrome.storage.session.remove('menusReady');
+  await ensureMenus();
   if (details.reason === 'install') chrome.runtime.openOptionsPage();
 });
 
-chrome.runtime.onStartup.addListener(createMenus);
+chrome.runtime.onStartup.addListener(ensureMenus);
 
-// Unpacked reloads do not reliably fire onInstalled, so rebuild the menus
-// whenever the worker boots; removeAll() keeps this idempotent.
-createMenus();
+ensureMenus();
 
 async function myBlocksPack(settings) {
   let pack = settings.packs.find((p) => p.id === 'my-blocks');
