@@ -117,6 +117,10 @@
   }
 
   function scopeOf(el) {
+    const path = location.pathname;
+    if (path === '/results') return 'search';
+    if (path.startsWith('/playlist')) return 'playlist';
+
     if (
       el.matches('ytm-shorts-lockup-view-model, ytd-reel-item-renderer') ||
       el.closest('ytd-rich-shelf-renderer[is-shorts], ytd-reel-shelf-renderer')
@@ -125,13 +129,10 @@
     }
     if (el.matches('ytd-compact-video-renderer') || el.closest('#secondary')) return 'watchSidebar';
 
-    const path = location.pathname;
-    if (path === '/results') return 'search';
-    if (path.startsWith('/playlist')) return 'playlist';
     if (path.startsWith('/channel/') || path.startsWith('/c/') || path.startsWith('/@')) {
       return 'channel';
     }
-    if (path.startsWith('/watch')) return 'watchSidebar';
+    if (path.startsWith('/watch') || path.startsWith('/shorts/')) return 'watchSidebar';
     return 'home';
   }
 

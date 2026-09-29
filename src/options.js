@@ -124,6 +124,7 @@
       settings.packs = settings.packs.filter((p) => p !== pack);
       save();
       renderPacks();
+      renderCatalog();
     });
 
     const exportOne = el('button', { textContent: 'Export' });
