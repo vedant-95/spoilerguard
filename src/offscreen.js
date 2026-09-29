@@ -8,6 +8,7 @@
  */
 import { pipeline, env } from './vendor/transformers.min.js';
 
+env.allowLocalModels = true;
 env.allowRemoteModels = false;
 env.localModelPath = chrome.runtime.getURL('models/');
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('src/vendor/');

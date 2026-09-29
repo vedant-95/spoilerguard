@@ -36,10 +36,12 @@
     '#channel-name a',
     '#channel-name #text',
     '.yt-content-metadata-view-model-wiz__metadata-text a',
+    '.ytContentMetadataViewModelMetadataText a',
     '.ytd-channel-name'
   ].join(',');
 
   const METADATA_SELECTORS = [
+    '.ytContentMetadataViewModelMetadataText',
     '.yt-content-metadata-view-model-wiz__metadata-text',
     '.yt-content-metadata-view-model__metadata-text',
     '#metadata-line span',
@@ -47,6 +49,7 @@
   ].join(',');
 
   const DURATION_SELECTORS = [
+    '.ytThumbnailOverlayBadgeViewModelBadge',
     'ytd-thumbnail-overlay-time-status-renderer #text',
     '.badge-shape-wiz__text',
     '.ytd-thumbnail-overlay-time-status-renderer',
@@ -118,8 +121,13 @@
     const meta = { channel: '', views: '', age: '', duration: '' };
     const chunks = [];
     el.querySelectorAll(METADATA_SELECTORS).forEach((node) => {
-      const value = textOf(node);
-      if (value && !chunks.includes(value)) chunks.push(value);
+      // A row can be one element holding "1.2M views \u00b7 3 years ago".
+      textOf(node)
+        .split(/\s*[\u00b7\u2022|]\s*/)
+        .forEach((part) => {
+          const value = part.trim();
+          if (value && !chunks.includes(value)) chunks.push(value);
+        });
     });
 
     for (const chunk of chunks) {
