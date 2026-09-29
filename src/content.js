@@ -543,6 +543,14 @@
     (event) => {
       const target = event.target instanceof Element ? event.target : null;
       lastContextTarget = target ? target.closest(TILE_SELECTORS) : null;
+      // Push the tile now so the menu click finds it even if asking the page
+      // back fails while the service worker is waking up.
+      chrome.runtime
+        .sendMessage({
+          type: 'sg:context-target-set',
+          info: lastContextTarget ? readTile(lastContextTarget) : null
+        })
+        .catch(() => {});
     },
     true
   );

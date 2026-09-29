@@ -110,8 +110,20 @@ async function addTerms(terms) {
   await saveSettings(settings);
 }
 
+let pushedTarget = null;
+
+async function contextTarget(tabId) {
+  try {
+    const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+    if (info) return info;
+  } catch (err) {
+    console.warn('SpoilerGuard: could not read the right-clicked tile', err);
+  }
+  return pushedTarget;
+}
+
 async function quickBlockChannel(tabId) {
-  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+  const info = await contextTarget(tabId);
   if (!info || !(info.channel || info.handle)) return;
   const settings = await getSettings();
   const pack = await myBlocksPack(settings);
@@ -121,7 +133,7 @@ async function quickBlockChannel(tabId) {
 }
 
 async function quickAllowVideo(tabId) {
-  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+  const info = await contextTarget(tabId);
   if (!info || !info.videoId) return;
   const settings = await getSettings();
   if (!settings.allowedVideos.includes(info.videoId)) settings.allowedVideos.push(info.videoId);
@@ -130,13 +142,17 @@ async function quickAllowVideo(tabId) {
 
 chrome.contextMenus.onClicked.addListener(async (item, tab) => {
   if (!tab || !tab.id) return;
-  if (item.menuItemId === 'sg-block-channel') await quickBlockChannel(tab.id);
-  if (item.menuItemId === 'sg-block-keywords') {
-    await chrome.tabs.sendMessage(tab.id, { type: 'sg:pick-keywords' }).catch(() => {});
+  try {
+    if (item.menuItemId === 'sg-block-channel') await quickBlockChannel(tab.id);
+    if (item.menuItemId === 'sg-block-keywords') {
+      await chrome.tabs.sendMessage(tab.id, { type: 'sg:pick-keywords' }).catch(() => {});
+    }
+    if (item.menuItemId === 'sg-block-selection') await addTerms([item.selectionText]);
+    if (item.menuItemId === 'sg-allow-video') await quickAllowVideo(tab.id);
+    if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
+  } catch (err) {
+    console.error('SpoilerGuard: menu action failed', item.menuItemId, err);
   }
-  if (item.menuItemId === 'sg-block-selection') await addTerms([item.selectionText]);
-  if (item.menuItemId === 'sg-allow-video') await quickAllowVideo(tab.id);
-  if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
 });
 
 let offscreenReady = null;
@@ -196,6 +212,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message && message.type === 'sg:context-target-set') {
+    pushedTarget = message.info || null;
+    return undefined;
+  }
   if (message && message.type === 'sg:add-terms') {
     addTerms(message.terms);
     return undefined;
