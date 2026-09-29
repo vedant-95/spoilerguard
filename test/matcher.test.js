@@ -120,3 +120,9 @@ test('broken user regex does not throw', () => {
   const s = M.withDefaults({ packs: [M.sanitizePack({ name: 'Bad', regex: ['([a-z'] })] });
   assert.equal(M.evaluate({ title: 'anything' }, s).blocked, false);
 });
+
+test('a fresh install starts with no lists, so nothing is hidden', () => {
+  const s = M.withDefaults(null);
+  assert.deepEqual(s.packs, []);
+  assert.equal(M.evaluate({ title: 'Kratos kills a god' }, s).blocked, false);
+});

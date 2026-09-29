@@ -5,17 +5,18 @@
   const $ = (id) => document.getElementById(id);
 
   const REPO = 'https://github.com/vedant-95/spoilerguard';
+  const SHARE_FORM = REPO + '/issues/new';
   const COMMUNITY_INDEX =
     'https://raw.githubusercontent.com/vedant-95/spoilerguard/main/packs/index.json';
   const COMMUNITY_BASE = 'https://raw.githubusercontent.com/vedant-95/spoilerguard/main/';
 
   const SCOPE_LABELS = {
-    home: 'Home page and your subscriptions',
-    search: 'Search results (off by default, because you searched for it on purpose)',
-    watchSidebar: 'Suggested videos beside the one you are watching',
+    home: 'The home page and your subscriptions',
+    search: 'Things you searched for',
+    watchSidebar: 'The next videos beside the one you are watching',
     shorts: 'Shorts',
     channel: 'Channel pages',
-    comments: 'Comments (off by default, turn this on if comments spoil things for you)',
+    comments: 'Comments',
     playlist: 'Playlists'
   };
 
@@ -95,8 +96,12 @@
     return (values || []).join('\n');
   }
 
+  function plural(count, one, many) {
+    return count + ' ' + (count === 1 ? one : many);
+  }
+
   function countLabel(pack) {
-    return pack.terms.length + ' words, ' + pack.channels.length + ' channels';
+    return plural(pack.terms.length, 'word', 'words') + ', ' + plural(pack.channels.length, 'channel', 'channels');
   }
 
   function parseLines(text) {
@@ -142,7 +147,7 @@
 
     const topics = el('textarea', {
       value: lines(pack.ai.topics),
-      placeholder: 'the ghost of sparta fights the gods of olympus'
+      placeholder: 'who won the world cup final and how the goals were scored'
     });
     autosave(topics, () => {
       pack.ai.topics = parseLines(topics.value);
@@ -179,19 +184,19 @@
 
     const body = el('div', { className: 'subcard-body' }, [
       field(
-        'Describe in your own words what you want hidden',
+        'Say in your own words what you want hidden',
         topics,
-        'One idea per line. If you leave this blank it uses the name of the list, which is usually too short for the AI to understand. A full sentence works much better, for example "the ghost of sparta fights the gods of olympus".'
+        'Write one whole sentence, like "who won the world cup final and how the goals were scored". One idea per line. A full sentence works much better than one or two words.'
       ),
       field(
-        'How eager should it be?',
+        'How much should it hide?',
         el('div', { className: 'slider-row' }, [
           el('span', { className: 'pill', textContent: 'Hide less' }),
           slider,
           el('span', { className: 'pill', textContent: 'Hide more' }),
           sliderValue
         ]),
-        'Move it right and it covers more videos, including some you would have been happy to see. Move it left and it lets a few spoilers through. The middle setting suits most people.'
+        'Move it right to cover more videos, but it will also cover some you would have liked. Move it left and a few spoilers slip through. The middle is good for most people.'
       )
     ]);
 
@@ -212,14 +217,14 @@
           on,
           el('span', {
             className: 'subcard-title',
-            textContent: 'Also hide videos that mean the same thing (optional AI)'
+            textContent: 'AI powered hiding'
           })
         ])
       ]),
       el('p', {
         className: 'hint',
         textContent:
-          'Your words only catch titles that actually use them. A title like "HE FINALLY MEETS HIS SON" never says God of War, but it means the same thing, and this is what catches it. The AI runs inside your own browser, so no title and no video you watch is ever sent anywhere. It makes pages load a fraction slower and it does sometimes cover things you did not mean.'
+          'Your words only catch titles that use those exact words. A title like "WHAT A FINISH IN THE LAST MINUTE" never says the final or the score, but it still gives it away. Turn this on and SpoilerGuard hides those too. It is not perfect, so it covers the odd video you did not mind seeing.'
       }),
       body
     ]);
@@ -289,49 +294,48 @@
     });
 
     const remove = el('button', { className: 'danger', textContent: 'Delete this list' });
+    remove.title = 'Remove this list from SpoilerGuard';
     remove.addEventListener('click', () => {
       settings.packs = settings.packs.filter((p) => p !== pack);
       save();
       renderPacks();
       renderCatalog();
+      renderSharePicker();
     });
-
-    const exportOne = el('button', { textContent: 'Save to a file' });
-    exportOne.addEventListener('click', () => download(pack.name, pack));
 
     const body = el('div', { className: 'card-body' }, [
       field(
-        'Words and phrases to hide',
+        'Words to hide',
         terms,
-        'One per line. A video is covered when its title or channel contains any of these. Whole words only, so "gow" will not match "Glasgow".'
+        'One word or phrase on each line, like "world cup final". A video is covered if its title or channel has any of them. Whole words only, so "cup" will not hit "cupcake".'
       ),
       field(
         'Channels to hide',
         channels,
-        'One per line, either the channel name or its @handle. Useful for channels that post spoilers with vague titles such as "HE DID WHAT?!".'
+        'One on each line. Use the channel name or its @handle. Good for channels that give things away with titles like "HE DID WHAT?!".'
       ),
       field(
-        'Words that keep a video visible',
+        'Words that mean keep it',
         except,
-        'One per line. These beat everything above. For example, hide "ragnarok" but still show anything with "thor ragnarok" in the title.'
+        'One on each line. These win. Hide "final" but still show anything that says "final fantasy".'
       ),
       field(
-        'Only hide videos uploaded after this date',
+        'Only hide videos made after this day',
         onlyAfter,
-        'Leave blank to hide matching videos of any age. A video uploaded before you started cannot spoil what happens next, so putting the date you started the game here removes a lot of pointless covers.'
+        'Leave it empty to hide old videos too. A video made before the match was played cannot give it away, so put that day here.'
       ),
       field(
-        'Switch this list off by itself on this date',
+        'Turn this list off on this day',
         expires,
-        'Leave blank to keep it on forever. Set it to the day you expect to finish the game or watch the match, and SpoilerGuard stops hiding this topic on its own.'
+        'Leave it empty to keep it on. Put the day you will have caught up, and SpoilerGuard stops hiding this on its own.'
       ),
       field(
-        'Words shown on the cover',
+        'What the cover should say',
         label,
-        'This is all you see in place of the video, so make it say why it is hidden, for example "God of War spoilers".'
+        'This is all you see instead of the video, so say why it is hidden, like "World Cup spoilers".'
       ),
       aiPanel(pack),
-      el('div', { className: 'actions' }, [exportOne, remove])
+      el('div', { className: 'actions' }, [remove])
     ]);
 
     // Collapsed by default so a long list of topics stays readable and it is
@@ -352,7 +356,8 @@
       host.appendChild(
         el('p', {
           className: 'hint',
-          textContent: 'You have no block lists yet. Add a ready made one below, or create your own.'
+          textContent:
+            'You have no lists yet. Go to Community made lists and pick one, or make your own below.'
         })
       );
       return;
@@ -387,7 +392,7 @@
       $('catalogStatus').textContent = '';
     } catch (err) {
       $('catalogStatus').textContent =
-        'Could not check for shared lists just now, showing the ones built into the extension.';
+        'Could not look for new lists right now. These are the ones that came with SpoilerGuard.';
     }
     return entries;
   }
@@ -400,7 +405,7 @@
       entries = await loadCatalog();
     } catch (err) {
       host.appendChild(
-        el('p', { className: 'hint', textContent: 'No ready made lists available right now.' })
+        el('p', { className: 'hint', textContent: 'No community made lists right now.' })
       );
       return;
     }
@@ -410,7 +415,7 @@
       const installed = settings.packs.some((p) => p.id === entry.id);
       const add = el('button', {
         className: installed ? '' : 'primary',
-        textContent: installed ? 'Already added' : 'Add to my lists',
+        textContent: installed ? 'You have this' : 'Use this list',
         disabled: installed
       });
       add.addEventListener('click', async () => {
@@ -424,9 +429,10 @@
           await save();
           renderPacks();
           renderCatalog();
+          renderSharePicker();
         } catch (err) {
           add.disabled = false;
-          add.textContent = 'Could not add, try again';
+          add.textContent = 'That did not work, try again';
         }
       });
       host.appendChild(
@@ -436,7 +442,7 @@
               el('span', { className: 'card-title', textContent: entry.name }),
               el('span', {
                 className: 'pill',
-                textContent: item.shared ? 'Shared by the community' : 'Built in'
+                textContent: item.shared ? 'Made by someone else' : 'Comes with SpoilerGuard'
               })
             ]),
             add
@@ -450,17 +456,59 @@
   function renderAllowed() {
     const count = settings.allowedVideos.length;
     $('allowCount').textContent = count
-      ? count + ' video(s) will never be covered, because you chose "Always allow" on them.'
-      : 'None yet. "Always allow" on any cover adds the video here.';
+      ? (count === 1 ? 'One video is here. It' : 'There are ' + count + ' videos here. They') +
+        ' will never be covered.'
+      : 'Nothing here yet. Click "Always show" on a cover to add a video.';
+  }
+
+  function renderSharePicker() {
+    const picker = $('sharePick');
+    picker.textContent = '';
+    if (!settings.packs.length) {
+      picker.appendChild(el('option', { textContent: 'You have no lists to share yet' }));
+      $('shareBtn').disabled = true;
+      return;
+    }
+    $('shareBtn').disabled = false;
+    settings.packs.forEach((pack, index) => {
+      picker.appendChild(el('option', { value: String(index), textContent: pack.name }));
+    });
+  }
+
+  function renderMaster() {
+    $('enabled').checked = settings.enabled !== false;
+    $('enabledLabel').textContent = settings.enabled === false ? 'Off' : 'On';
   }
 
   function renderAll() {
+    renderMaster();
     renderScope();
     renderBehaviour();
     renderPacks();
     renderCatalog();
     renderAllowed();
+    renderSharePicker();
   }
+
+  /* The tab rail shows one page at a time so nothing scrolls out of sight. */
+  function showPage(name) {
+    for (const tab of document.querySelectorAll('.tab')) {
+      tab.setAttribute('aria-selected', String(tab.dataset.page === name));
+    }
+    for (const page of document.querySelectorAll('.page')) {
+      page.classList.toggle('active', page.id === 'page-' + name);
+    }
+    location.hash = name;
+  }
+
+  for (const tab of document.querySelectorAll('.tab')) {
+    tab.addEventListener('click', () => showPage(tab.dataset.page));
+  }
+  window.addEventListener('hashchange', () => {
+    const name = location.hash.slice(1);
+    if (document.getElementById('page-' + name)) showPage(name);
+  });
+  showPage(document.getElementById('page-' + location.hash.slice(1)) ? location.hash.slice(1) : 'lists');
 
   /* ---------------------------------------------------------------- */
 
@@ -472,27 +520,6 @@
     URL.revokeObjectURL(url);
   }
 
-  async function importPayload(raw) {
-    const text = raw.trim();
-    let data;
-    if (/^https?:\/\//i.test(text)) {
-      data = await fetchJson(text);
-    } else {
-      data = JSON.parse(text);
-    }
-    const incoming = Array.isArray(data) ? data : data.packs && Array.isArray(data.packs) ? data.packs : [data];
-    let added = 0;
-    for (const item of incoming) {
-      const pack = M.sanitizePack(item);
-      if (settings.packs.some((p) => p.id === pack.id)) pack.id = M.makePackId(pack.name);
-      settings.packs.push(pack);
-      added += 1;
-    }
-    await save();
-    renderPacks();
-    return added;
-  }
-
   $('coverStyle').addEventListener('change', (event) => {
     settings.coverStyle = event.target.value;
     save();
@@ -501,25 +528,45 @@
     settings.revealMinutes = Math.max(1, Number(event.target.value) || 10);
     save();
   });
+  $('enabled').addEventListener('change', (event) => {
+    settings.enabled = event.target.checked;
+    renderMaster();
+    save();
+  });
   $('newPack').addEventListener('click', async () => {
-    settings.packs.push(M.sanitizePack({ name: 'New block list', enabled: false }));
+    settings.packs.push(M.sanitizePack({ name: 'My new list', enabled: true }));
     await save();
     renderPacks();
+    renderSharePicker();
   });
   $('refreshCatalog').addEventListener('click', renderCatalog);
-  $('contribute').addEventListener('click', () => {
-    chrome.tabs.create({ url: REPO + '/blob/main/CONTRIBUTING.md' });
-  });
-  $('importBtn').addEventListener('click', async () => {
-    try {
-      const added = await importPayload($('importText').value);
-      $('importStatus').textContent = 'Added ' + added + ' list(s).';
-      $('importText').value = '';
-    } catch (err) {
-      $('importStatus').textContent = 'Could not add that: ' + err.message;
+  $('shareBtn').addEventListener('click', () => {
+    const pack = settings.packs[Number($('sharePick').value)];
+    if (!pack) return;
+    const share = {
+      id: pack.id,
+      name: pack.name,
+      label: pack.label,
+      terms: pack.terms,
+      channels: pack.channels,
+      except: pack.except
+    };
+    const params = new URLSearchParams({
+      template: 'share-a-list.yml',
+      title: 'Block list: ' + pack.name,
+      'list-name': pack.name,
+      'list-json': JSON.stringify(share, null, 2)
+    });
+    const url = SHARE_FORM + '?' + params.toString();
+    // Very long lists do not survive a browser address bar, so hand those over
+    // as a file the person can drag into the form instead.
+    if (url.length > 6000) {
+      download(pack.name, share);
+      chrome.tabs.create({ url: SHARE_FORM + '?template=share-a-list.yml' });
+      return;
     }
+    chrome.tabs.create({ url });
   });
-  $('exportBtn').addEventListener('click', () => download('spoilerguard-packs', { packs: settings.packs }));
   $('clearAllowed').addEventListener('click', async () => {
     settings.allowedVideos = [];
     await save();

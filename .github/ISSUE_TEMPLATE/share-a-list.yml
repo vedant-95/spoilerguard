@@ -1,0 +1,32 @@
+name: Share a block list
+description: Offer one of your SpoilerGuard lists to everybody else.
+title: 'Block list: '
+labels: ['block list']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Most of this is filled in for you if you came from the SpoilerGuard settings page.
+        Check it looks right, then press the green button at the bottom.
+  - type: input
+    id: list-name
+    attributes:
+      label: What is this list called?
+      placeholder: God of War
+    validations:
+      required: true
+  - type: textarea
+    id: about
+    attributes:
+      label: What does it hide?
+      placeholder: Spoilers for the God of War games, including character names.
+    validations:
+      required: true
+  - type: textarea
+    id: list-json
+    attributes:
+      label: Your list
+      description: This is the list itself. It is filled in for you, so you do not need to change it.
+      render: json
+    validations:
+      required: true

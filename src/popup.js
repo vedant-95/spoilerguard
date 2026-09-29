@@ -17,15 +17,15 @@
   }
 
   function statusText() {
-    if (!settings.enabled) return 'Turned off, so nothing is being hidden.';
+    if (!settings.enabled) return 'Off. Nothing is hidden.';
     if (settings.snoozeUntil > Date.now()) {
       const minutes = Math.ceil((settings.snoozeUntil - Date.now()) / 60000);
-      return 'Paused for ' + minutes + ' more minute' + (minutes === 1 ? '' : 's') + '.';
+      return 'Taking a break for ' + minutes + ' more minute' + (minutes === 1 ? '' : 's') + '.';
     }
     const active = M.activePacks(settings).length;
     return active
-      ? 'Hiding ' + active + ' topic' + (active === 1 ? '' : 's') + ' on YouTube.'
-      : 'Nothing is switched on yet, so nothing gets hidden.';
+      ? 'Hiding ' + active + (active === 1 ? ' thing' : ' things') + ' on YouTube.'
+      : 'No list is on yet, so nothing is hidden.';
   }
 
   function render() {
@@ -37,7 +37,7 @@
     if (!settings.packs.length) {
       const empty = document.createElement('p');
       empty.className = 'hint';
-      empty.textContent = 'No block lists yet. Open all settings to add one.';
+      empty.textContent = 'No lists yet. Open settings to pick one.';
       list.appendChild(empty);
       return;
     }
@@ -86,7 +86,7 @@
       .filter(Boolean);
     let pack = settings.packs.find((p) => p.id === 'my-blocks');
     if (!pack) {
-      pack = M.sanitizePack({ id: 'my-blocks', name: 'My blocks', label: 'Blocked by you' });
+      pack = M.sanitizePack({ id: 'my-blocks', name: 'My words', label: 'You asked to hide this' });
       settings.packs.unshift(pack);
     }
     for (const term of terms) if (!pack.terms.includes(term)) pack.terms.push(term);

@@ -200,11 +200,11 @@
     const cover = document.createElement('div');
     cover.className = 'sg-cover';
     cover.dataset.sgStyle = settings.coverStyle;
-    cover.title = 'SpoilerGuard hid this because of ' + (verdict.reason || 'one of your rules');
+    cover.title = 'SpoilerGuard hid this because of ' + (verdict.reason || 'one of your lists');
 
     const label = document.createElement('div');
     label.className = 'sg-cover-label';
-    label.textContent = verdict.label || 'Hidden content';
+    label.textContent = verdict.label || 'Hidden by SpoilerGuard';
 
     const facts = [info.duration, info.views, info.age].filter(Boolean).join(' \u00b7 ');
     const meta = document.createElement('div');
@@ -221,7 +221,7 @@
     const reveal = document.createElement('button');
     reveal.className = 'sg-btn sg-btn-primary';
     reveal.type = 'button';
-    reveal.textContent = 'Reveal';
+    reveal.textContent = 'Show me';
     reveal.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -232,7 +232,7 @@
     const always = document.createElement('button');
     always.className = 'sg-btn';
     always.type = 'button';
-    always.textContent = 'Always allow';
+    always.textContent = 'Always show';
     always.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -467,14 +467,14 @@
     modal.className = 'sg-modal';
 
     const heading = document.createElement('h3');
-    heading.textContent = 'Block keywords from this video';
+    heading.textContent = 'Which words should be hidden?';
     const quote = document.createElement('p');
     quote.className = 'sg-modal-quote';
     quote.textContent = info.title;
 
     const help = document.createElement('p');
     help.className = 'sg-modal-help';
-    help.textContent = 'Anything you tick will be hidden everywhere on YouTube from now on.';
+    help.textContent = 'Every video with the words you tick will be covered from now on.';
 
     const list = document.createElement('div');
     list.className = 'sg-chiplist';
@@ -496,12 +496,12 @@
     const custom = document.createElement('input');
     custom.type = 'text';
     custom.className = 'sg-input';
-    custom.placeholder = 'or type your own words, comma separated';
+    custom.placeholder = 'or type your own words, with commas between them';
 
     const block = document.createElement('button');
     block.type = 'button';
     block.className = 'sg-btn sg-btn-primary';
-    block.textContent = 'Block these';
+    block.textContent = 'Hide these';
     block.addEventListener('click', () => {
       const terms = Array.from(chosen).concat(
         custom.value
