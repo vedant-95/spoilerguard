@@ -64,6 +64,12 @@ test('parses YouTube upload ages', () => {
   assert.equal(M.parseAgeDays('2 days ago'), 2);
   assert.equal(M.parseAgeDays('Streamed 1 week ago'), 7);
   assert.equal(M.parseAgeDays('1.2M views'), null);
+  assert.equal(M.parseAgeDays('3y ago'), 1095);
+  assert.equal(M.parseAgeDays('2d ago'), 2);
+  assert.equal(M.parseAgeDays('3w ago'), 21);
+  assert.equal(Math.round(M.parseAgeDays('6mo ago')), 182);
+  assert.equal(M.parseAgeDays('45m ago'), 45 / 1440);
+  assert.equal(M.parseAgeDays('4K views'), null);
 });
 
 test('maxAgeDays keeps older uploads visible', () => {
@@ -72,6 +78,7 @@ test('maxAgeDays keeps older uploads visible', () => {
   });
   assert.equal(M.evaluate({ title: 'Arsenal highlights', age: '2 days ago' }, s).blocked, true);
   assert.equal(M.evaluate({ title: 'Arsenal highlights', age: '3 years ago' }, s).blocked, false);
+  assert.equal(M.evaluate({ title: 'Arsenal highlights', age: '3y ago' }, s).blocked, false);
   assert.equal(M.evaluate({ title: 'Arsenal highlights' }, s).blocked, true);
 });
 

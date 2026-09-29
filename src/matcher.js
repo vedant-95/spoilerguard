@@ -86,7 +86,7 @@
     return null;
   }
 
-  const AGE_UNITS = {
+  const DAYS_PER_UNIT = {
     second: 1 / 86400,
     minute: 1 / 1440,
     hour: 1 / 24,
@@ -96,12 +96,28 @@
     year: 365
   };
 
-  /** "3 years ago" -> 1095. Returns null when the text is not an age. */
+  // YouTube writes both "3 years ago" and the compact "3y ago"; "mo" is months
+  // while a bare "m" is minutes.
+  const AGE_UNITS = {
+    s: 'second', sec: 'second', secs: 'second', second: 'second', seconds: 'second',
+    m: 'minute', min: 'minute', mins: 'minute', minute: 'minute', minutes: 'minute',
+    h: 'hour', hr: 'hour', hrs: 'hour', hour: 'hour', hours: 'hour',
+    d: 'day', day: 'day', days: 'day',
+    w: 'week', wk: 'week', wks: 'week', week: 'week', weeks: 'week',
+    mo: 'month', mos: 'month', month: 'month', months: 'month',
+    y: 'year', yr: 'year', yrs: 'year', year: 'year', years: 'year'
+  };
+
+  const AGE_RE = /(\d+)\s*([a-z]+)\s+ago/;
+
+  /** "3 years ago" and "3y ago" -> 1095. Null when the text is not an age. */
   function parseAgeDays(text) {
     if (!text) return null;
-    const match = normalize(text).match(/(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago/);
+    const match = normalize(text).match(AGE_RE);
     if (!match) return null;
-    return Number(match[1]) * AGE_UNITS[match[2]];
+    const unit = AGE_UNITS[match[2]];
+    if (!unit) return null;
+    return Number(match[1]) * DAYS_PER_UNIT[unit];
   }
 
   function packIsActive(pack, now) {
