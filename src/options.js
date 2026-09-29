@@ -15,15 +15,47 @@
   };
 
   let settings = M.withDefaults(null);
+  let saveTimer = 0;
 
   async function load() {
-    const stored = await chrome.storage.sync.get('settings');
-    settings = M.withDefaults(stored.settings);
+    settings = M.withDefaults(await M.readSettings());
     renderAll();
   }
 
+  function status(text, bad) {
+    const node = $('saveStatus');
+    node.textContent = text;
+    node.className = bad ? 'save-status bad' : 'save-status';
+  }
+
   async function save() {
-    await chrome.storage.sync.set({ settings });
+    clearTimeout(saveTimer);
+    try {
+      await M.writeSettings(settings);
+      status('Saved');
+      saveTimer = setTimeout(() => status(''), 1500);
+    } catch (err) {
+      status('Could not save: ' + err.message, true);
+    }
+  }
+
+  // Text fields used to persist only on blur, so typing and closing the tab
+  // threw the edit away.
+  function autosave(input, apply) {
+    let timer = 0;
+    const run = () => {
+      apply();
+      save();
+    };
+    input.addEventListener('input', () => {
+      status('Saving…');
+      clearTimeout(timer);
+      timer = setTimeout(run, 400);
+    });
+    input.addEventListener('change', () => {
+      clearTimeout(timer);
+      run();
+    });
   }
 
   function el(tag, props, children) {
@@ -39,6 +71,10 @@
 
   function lines(values) {
     return (values || []).join('\n');
+  }
+
+  function countLabel(pack) {
+    return pack.terms.length + ' words \u00b7 ' + pack.channels.length + ' channels';
   }
 
   function parseLines(text) {
@@ -75,39 +111,36 @@
       save();
     });
 
+    const name = el('input', { type: 'text', className: 'card-title', value: pack.name });
+    autosave(name, () => {
+      pack.name = name.value;
+    });
+
     const head = el('div', { className: 'card-head' }, [
-      el('label', { className: 'row' }, [enabled, el('span', { className: 'card-title', textContent: pack.name })]),
-      el('span', {
-        className: 'pill',
-        textContent:
-          pack.terms.length + ' words \u00b7 ' + pack.channels.length + ' channels'
-      })
+      el('label', { className: 'row' }, [enabled, name]),
+      el('span', { className: 'pill', textContent: countLabel(pack) })
     ]);
 
     const label = el('input', { type: 'text', value: pack.label });
-    label.addEventListener('change', () => {
+    autosave(label, () => {
       pack.label = label.value;
-      save();
     });
 
     const terms = el('textarea', { value: lines(pack.terms) });
-    terms.addEventListener('change', () => {
+    autosave(terms, () => {
       pack.terms = parseLines(terms.value);
-      save();
-      renderPacks();
+      head.lastChild.textContent = countLabel(pack);
     });
 
     const channels = el('textarea', { value: lines(pack.channels) });
-    channels.addEventListener('change', () => {
+    autosave(channels, () => {
       pack.channels = parseLines(channels.value);
-      save();
-      renderPacks();
+      head.lastChild.textContent = countLabel(pack);
     });
 
     const except = el('textarea', { value: lines(pack.except) });
-    except.addEventListener('change', () => {
+    autosave(except, () => {
       pack.except = parseLines(except.value);
-      save();
     });
 
     const maxAge = el('input', {
@@ -115,9 +148,8 @@
       min: '0',
       value: pack.maxAgeDays || ''
     });
-    maxAge.addEventListener('change', () => {
+    autosave(maxAge, () => {
       pack.maxAgeDays = Math.max(0, Number(maxAge.value) || 0);
-      save();
     });
 
     const aiOn = el('input', { type: 'checkbox', checked: Boolean(pack.ai && pack.ai.enabled) });
@@ -139,9 +171,8 @@
       save();
       if (aiOn.checked) chrome.runtime.sendMessage({ type: 'sg:ai-warmup' });
     });
-    aiTopics.addEventListener('change', () => {
+    autosave(aiTopics, () => {
       pack.ai.topics = parseLines(aiTopics.value);
-      save();
     });
     aiThreshold.addEventListener('input', () => {
       pack.ai.threshold = Number(aiThreshold.value);

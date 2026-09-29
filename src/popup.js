@@ -7,13 +7,12 @@
   let settings = M.withDefaults(null);
 
   async function load() {
-    const stored = await chrome.storage.sync.get('settings');
-    settings = M.withDefaults(stored.settings);
+    settings = M.withDefaults(await M.readSettings());
     render();
   }
 
   async function save() {
-    await chrome.storage.sync.set({ settings });
+    await M.writeSettings(settings);
     render();
   }
 

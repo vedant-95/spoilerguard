@@ -243,8 +243,29 @@
     return settings;
   }
 
+  /*
+   * Settings live in chrome.storage.local: sync caps a single item at 8 KB,
+   * which a handful of packs passes, and the write then fails silently.
+   */
+  async function readSettings() {
+    const local = await chrome.storage.local.get('settings');
+    if (local.settings) return local.settings;
+    const synced = await chrome.storage.sync.get('settings');
+    if (synced.settings) {
+      await chrome.storage.local.set({ settings: synced.settings });
+      return synced.settings;
+    }
+    return null;
+  }
+
+  async function writeSettings(settings) {
+    await chrome.storage.local.set({ settings });
+  }
+
   const api = {
     DEFAULT_SETTINGS,
+    readSettings,
+    writeSettings,
     normalize,
     padded,
     matchesTerm,

@@ -71,16 +71,10 @@
   /* state                                                               */
   /* ------------------------------------------------------------------ */
 
-  function loadState() {
-    return new Promise((resolve) => {
-      chrome.storage.sync.get('settings', (syncItems) => {
-        settings = M.withDefaults(syncItems && syncItems.settings);
-        chrome.storage.local.get('reveals', (localItems) => {
-          reveals = pruneReveals((localItems && localItems.reveals) || {});
-          resolve();
-        });
-      });
-    });
+  async function loadState() {
+    settings = M.withDefaults(await M.readSettings());
+    const localItems = await chrome.storage.local.get('reveals');
+    reveals = pruneReveals((localItems && localItems.reveals) || {});
   }
 
   function pruneReveals(map) {
@@ -103,7 +97,7 @@
     const list = settings.allowedVideos.slice();
     if (!list.includes(videoId)) list.push(videoId);
     settings.allowedVideos = list;
-    chrome.storage.sync.set({ settings });
+    M.writeSettings(settings);
   }
 
   /* ------------------------------------------------------------------ */
@@ -569,7 +563,7 @@
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.settings) {
+    if (area === 'local' && changes.settings) {
       settings = M.withDefaults(changes.settings.newValue);
       rescanAll();
     }

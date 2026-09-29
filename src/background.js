@@ -6,12 +6,11 @@ const M = self.SGMatcher;
 const STARTER_PACKS = ['packs/god-of-war.json', 'packs/kardashians.json'];
 
 async function getSettings() {
-  const { settings } = await chrome.storage.sync.get('settings');
-  return M.withDefaults(settings);
+  return M.withDefaults(await M.readSettings());
 }
 
 async function saveSettings(settings) {
-  await chrome.storage.sync.set({ settings });
+  await M.writeSettings(settings);
 }
 
 async function seedStarterPacks() {
@@ -150,7 +149,7 @@ async function classifyWithAi(items) {
   await ensureOffscreen();
   // Offscreen documents have no chrome.storage, so the packs travel with the
   // request.
-  const { settings } = await chrome.storage.sync.get('settings');
+  const settings = await getSettings();
   const response = await chrome.runtime.sendMessage({
     target: 'sg-offscreen',
     type: 'sg:ai-classify',
