@@ -7,26 +7,25 @@
   let settings = M.withDefaults(null);
 
   async function load() {
-    const stored = await chrome.storage.sync.get('settings');
-    settings = M.withDefaults(stored.settings);
+    settings = M.withDefaults(await M.readSettings());
     render();
   }
 
   async function save() {
-    await chrome.storage.sync.set({ settings });
+    await M.writeSettings(settings);
     render();
   }
 
   function statusText() {
-    if (!settings.enabled) return 'Paused — nothing is being hidden.';
+    if (!settings.enabled) return 'Turned off, so nothing is being hidden.';
     if (settings.snoozeUntil > Date.now()) {
       const minutes = Math.ceil((settings.snoozeUntil - Date.now()) / 60000);
       return 'Paused for ' + minutes + ' more minute' + (minutes === 1 ? '' : 's') + '.';
     }
     const active = M.activePacks(settings).length;
     return active
-      ? active + ' pack' + (active === 1 ? '' : 's') + ' active on YouTube.'
-      : 'No packs are switched on yet.';
+      ? 'Hiding ' + active + ' topic' + (active === 1 ? '' : 's') + ' on YouTube.'
+      : 'Nothing is switched on yet, so nothing gets hidden.';
   }
 
   function render() {
@@ -38,7 +37,7 @@
     if (!settings.packs.length) {
       const empty = document.createElement('p');
       empty.className = 'hint';
-      empty.textContent = 'No packs installed. Open all settings to add one.';
+      empty.textContent = 'No block lists yet. Open all settings to add one.';
       list.appendChild(empty);
       return;
     }

@@ -5,7 +5,10 @@
   --muted: #6b6b76;
   --line: #e3e3e8;
   --accent: #3b6ef5;
+  --accent-soft: #c4d3fb;
+  --accent-wash: #f0f4ff;
   --card: #fafafc;
+  --head: #f0f0f4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +18,9 @@
     --muted: #9a9aa5;
     --line: #2c2c33;
     --card: #1f1f25;
+    --accent-soft: #2f4176;
+    --accent-wash: #1b2033;
+    --head: #26262e;
   }
 }
 
@@ -113,6 +119,23 @@ label.row {
   font-weight: 600;
 }
 
+input.card-title {
+  width: auto;
+  min-width: 220px;
+}
+
+.save-status {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.65;
+  vertical-align: middle;
+}
+
+.save-status.bad {
+  color: #c0392b;
+  opacity: 1;
+}
+
 .field {
   margin-top: 10px;
 }
@@ -138,18 +161,75 @@ label.row {
 }
 
 .subcard {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border: 1px dashed var(--line);
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-soft);
   border-radius: 10px;
+  background: var(--accent-wash);
 }
 
 .subcard .hint {
   margin: 4px 0 8px;
 }
 
+.subcard-title {
+  font-weight: 600;
+}
+
+.subcard-body {
+  border-top: 1px solid var(--accent-soft);
+  padding-top: 4px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 input[type='range'] {
   flex: 1;
+}
+
+.pack {
+  border-width: 2px;
+  padding: 0;
+  margin-bottom: 18px;
+}
+
+.pack > .card-head {
+  padding: 12px;
+  border-radius: 10px 10px 0 0;
+  background: var(--head);
+}
+
+.pack > .card-body {
+  padding: 4px 12px 12px;
+}
+
+.card-number {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  line-height: 20px;
+  text-align: center;
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 4px 6px;
+  text-decoration: underline;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .pill {

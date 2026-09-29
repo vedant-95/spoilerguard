@@ -82,6 +82,32 @@ test('maxAgeDays keeps older uploads visible', () => {
   assert.equal(M.evaluate({ title: 'Arsenal highlights' }, s).blocked, true);
 });
 
+test('onlyAfter hides uploads newer than the chosen date', () => {
+  const now = Date.now();
+  const s = M.withDefaults({
+    packs: [
+      M.sanitizePack({
+        name: 'Game spoilers',
+        terms: ['kratos'],
+        onlyAfter: now - 10 * 86400000
+      })
+    ]
+  });
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '3 days ago' }, s, now).blocked, true);
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '4 weeks ago' }, s, now).blocked, false);
+});
+
+test('an onlyAfter date in the future hides nothing that exists yet', () => {
+  const now = Date.now();
+  const s = M.withDefaults({
+    packs: [
+      M.sanitizePack({ name: 'Game spoilers', terms: ['kratos'], onlyAfter: now + 90 * 86400000 })
+    ]
+  });
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '1 hour ago' }, s, now).blocked, false);
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '8 years ago' }, s, now).blocked, false);
+});
+
 test('sanitizePack fills in AI defaults', () => {
   const pack = M.sanitizePack({ name: 'X' });
   assert.deepEqual(pack.ai, { enabled: false, topics: [], threshold: 0.35 });

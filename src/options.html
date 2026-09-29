@@ -6,65 +6,89 @@
     <link rel="stylesheet" href="ui.css" />
     <style>
       body {
-        max-width: 780px;
+        max-width: 820px;
         margin: 0 auto;
-        padding: 24px 20px 64px;
+        padding: 24px 20px 80px;
       }
     </style>
   </head>
   <body>
-    <h1>SpoilerGuard settings</h1>
+    <h1>SpoilerGuard settings <span id="saveStatus" class="save-status"></span></h1>
     <p class="hint">
-      A <strong>block pack</strong> is a list of words, channels and exceptions. Anything on YouTube
-      matching an active pack gets covered until you click Reveal.
+      SpoilerGuard hides videos you do not want to see yet. It covers the thumbnail and the title
+      with a grey panel, and you can click Reveal on any cover to see what is underneath.
+      Everything you change here saves by itself.
     </p>
 
-    <h2>Where to hide things</h2>
+    <h2>1. What should be hidden</h2>
+    <p class="hint">
+      A <strong>block list</strong> is one topic you want covered, for example a game you are
+      playing or a celebrity you are tired of. Each grey box below is one block list. Anything you
+      block by right clicking a video on YouTube lands in <strong>My blocks</strong>.
+    </p>
+    <div id="packs"></div>
+    <div class="actions">
+      <button class="primary" id="newPack">Create a new block list</button>
+    </div>
+
+    <h2>2. Ready made block lists</h2>
+    <p class="hint">
+      These are written and shared by other people, so you do not have to think of every word
+      yourself. Adding one copies it into your own settings, where you can edit it freely.
+    </p>
+    <div id="catalog"></div>
+    <div class="actions">
+      <button id="refreshCatalog">Check for new lists</button>
+      <button id="contribute">Share a list you made</button>
+    </div>
+    <p class="hint" id="catalogStatus"></p>
+
+    <h2>3. Where on YouTube to hide things</h2>
+    <p class="hint">
+      Two of these are off on purpose. Search results stay visible because you typed the search
+      yourself, and comments stay visible because most people do not want their comments greyed
+      out. Turn either on if you want to be extra careful.
+    </p>
     <div class="card" id="scope"></div>
 
-    <h2>Behaviour</h2>
+    <h2>4. How the covers behave</h2>
     <div class="card">
       <div class="grid2">
         <div class="field">
-          <span>Cover style</span>
+          <span>Look of the cover</span>
           <select id="coverStyle">
             <option value="blur">Patterned panel</option>
             <option value="solid">Plain panel</option>
           </select>
         </div>
         <div class="field">
-          <span>"Reveal" keeps a video visible for (minutes)</span>
+          <span>After you click Reveal, keep the video visible for (minutes)</span>
           <input type="number" id="revealMinutes" min="1" max="1440" />
         </div>
       </div>
     </div>
 
-    <h2>Your block packs</h2>
-    <div id="packs"></div>
-    <div class="actions">
-      <button class="primary" id="newPack">New empty pack</button>
-    </div>
-
-    <h2>Add a ready-made pack</h2>
-    <div id="catalog"></div>
-
-    <h2>Import / export</h2>
+    <h2>5. Move your lists between computers</h2>
     <div class="card">
       <div class="field">
-        <span>Paste pack JSON, or a link to a pack file</span>
+        <span>Paste a block list, or a link to one</span>
+        <p class="hint">
+          Export gives you a file you can keep, email to yourself, or send to a friend. Paste one
+          back in here to add it.
+        </p>
         <textarea id="importText" placeholder='{"name": "Elden Ring", "terms": ["elden ring", "radahn"]}'></textarea>
       </div>
       <div class="actions">
-        <button class="primary" id="importBtn">Import</button>
-        <button id="exportBtn">Export all my packs</button>
+        <button class="primary" id="importBtn">Add what I pasted</button>
+        <button id="exportBtn">Save all my lists to a file</button>
       </div>
       <p class="hint" id="importStatus"></p>
     </div>
 
-    <h2>Always-allowed videos</h2>
+    <h2>6. Videos you told SpoilerGuard to always show</h2>
     <div class="card">
       <p class="hint" id="allowCount"></p>
-      <div class="actions"><button class="danger" id="clearAllowed">Clear list</button></div>
+      <div class="actions"><button class="danger" id="clearAllowed">Forget these</button></div>
     </div>
 
     <script src="matcher.js"></script>

@@ -120,6 +120,17 @@
     return Number(match[1]) * DAYS_PER_UNIT[unit];
   }
 
+  /*
+   * A pack can limit itself to recent uploads either by a cut-off date
+   * (onlyAfter) or, for hand written pack files, a rolling window in days.
+   * Returns null when the pack hides uploads of any age. A cut-off date in the
+   * future gives a negative limit, which no upload can satisfy.
+   */
+  function ageLimitDays(pack, now) {
+    if (pack.onlyAfter) return (now - pack.onlyAfter) / 86400000;
+    return pack.maxAgeDays || null;
+  }
+
   function packIsActive(pack, now) {
     if (!pack || pack.enabled === false) return false;
     if (pack.expiresAt && pack.expiresAt < now) return false;
@@ -154,7 +165,8 @@
     for (const pack of activePacks(settings, at)) {
       const exception = matchesAnyTerm(haystack, pack.except);
       if (exception) continue;
-      if (pack.maxAgeDays && ageDays !== null && ageDays > pack.maxAgeDays) continue;
+      const limit = ageLimitDays(pack, at);
+      if (limit !== null && ageDays !== null && ageDays > limit) continue;
 
       const channelHit =
         channelMatches(channelName, pack.channels) ||
@@ -213,6 +225,7 @@
       enabled: input.enabled !== false,
       expiresAt: Number(input.expiresAt) || 0,
       maxAgeDays: Number(input.maxAgeDays) || 0,
+      onlyAfter: Number(input.onlyAfter) || 0,
       ai: {
         enabled: Boolean(input.ai && input.ai.enabled),
         topics: list(input.ai && input.ai.topics),
@@ -243,8 +256,31 @@
     return settings;
   }
 
+  /*
+   * Settings live in chrome.storage.local: sync caps a single item at 8 KB,
+   * which a handful of packs passes, and the write then fails silently.
+   */
+  async function readSettings() {
+    const local = await chrome.storage.local.get('settings');
+    if (local.settings) return local.settings;
+    const synced = await chrome.storage.sync.get('settings');
+    if (!synced.settings) return null;
+    // Another context may have migrated and been edited while sync was read.
+    const fresh = await chrome.storage.local.get('settings');
+    if (fresh.settings) return fresh.settings;
+    await chrome.storage.local.set({ settings: synced.settings });
+    return synced.settings;
+  }
+
+  async function writeSettings(settings) {
+    await chrome.storage.local.set({ settings });
+  }
+
   const api = {
     DEFAULT_SETTINGS,
+    ageLimitDays,
+    readSettings,
+    writeSettings,
     normalize,
     padded,
     matchesTerm,

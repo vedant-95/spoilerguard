@@ -6,12 +6,11 @@ const M = self.SGMatcher;
 const STARTER_PACKS = ['packs/god-of-war.json', 'packs/kardashians.json'];
 
 async function getSettings() {
-  const { settings } = await chrome.storage.sync.get('settings');
-  return M.withDefaults(settings);
+  return M.withDefaults(await M.readSettings());
 }
 
 async function saveSettings(settings) {
-  await chrome.storage.sync.set({ settings });
+  await M.writeSettings(settings);
 }
 
 async function seedStarterPacks() {
@@ -68,17 +67,29 @@ function createMenus() {
   });
 }
 
+/*
+ * Menus survive worker restarts, and rebuilding them on every boot tears them
+ * down while a click that just woke the worker is still being delivered, which
+ * swallowed the click. chrome.storage.session is cleared when the extension
+ * reloads, so this still rebuilds after an unpacked reload.
+ */
+async function ensureMenus() {
+  const { menusReady } = await chrome.storage.session.get('menusReady');
+  if (menusReady) return;
+  await chrome.storage.session.set({ menusReady: true });
+  createMenus();
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   await seedStarterPacks();
-  createMenus();
+  await chrome.storage.session.remove('menusReady');
+  await ensureMenus();
   if (details.reason === 'install') chrome.runtime.openOptionsPage();
 });
 
-chrome.runtime.onStartup.addListener(createMenus);
+chrome.runtime.onStartup.addListener(ensureMenus);
 
-// Unpacked reloads do not reliably fire onInstalled, so rebuild the menus
-// whenever the worker boots; removeAll() keeps this idempotent.
-createMenus();
+ensureMenus();
 
 async function myBlocksPack(settings) {
   let pack = settings.packs.find((p) => p.id === 'my-blocks');
@@ -99,8 +110,22 @@ async function addTerms(terms) {
   await saveSettings(settings);
 }
 
+const pushedTargets = new Map();
+
+chrome.tabs.onRemoved.addListener((tabId) => pushedTargets.delete(tabId));
+
+async function contextTarget(tabId) {
+  try {
+    const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+    if (info) return info;
+  } catch (err) {
+    console.warn('SpoilerGuard: could not read the right-clicked tile', err);
+  }
+  return pushedTargets.get(tabId) || null;
+}
+
 async function quickBlockChannel(tabId) {
-  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+  const info = await contextTarget(tabId);
   if (!info || !(info.channel || info.handle)) return;
   const settings = await getSettings();
   const pack = await myBlocksPack(settings);
@@ -110,7 +135,7 @@ async function quickBlockChannel(tabId) {
 }
 
 async function quickAllowVideo(tabId) {
-  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+  const info = await contextTarget(tabId);
   if (!info || !info.videoId) return;
   const settings = await getSettings();
   if (!settings.allowedVideos.includes(info.videoId)) settings.allowedVideos.push(info.videoId);
@@ -119,13 +144,17 @@ async function quickAllowVideo(tabId) {
 
 chrome.contextMenus.onClicked.addListener(async (item, tab) => {
   if (!tab || !tab.id) return;
-  if (item.menuItemId === 'sg-block-channel') await quickBlockChannel(tab.id);
-  if (item.menuItemId === 'sg-block-keywords') {
-    await chrome.tabs.sendMessage(tab.id, { type: 'sg:pick-keywords' }).catch(() => {});
+  try {
+    if (item.menuItemId === 'sg-block-channel') await quickBlockChannel(tab.id);
+    if (item.menuItemId === 'sg-block-keywords') {
+      await chrome.tabs.sendMessage(tab.id, { type: 'sg:pick-keywords' }).catch(() => {});
+    }
+    if (item.menuItemId === 'sg-block-selection') await addTerms([item.selectionText]);
+    if (item.menuItemId === 'sg-allow-video') await quickAllowVideo(tab.id);
+    if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
+  } catch (err) {
+    console.error('SpoilerGuard: menu action failed', item.menuItemId, err);
   }
-  if (item.menuItemId === 'sg-block-selection') await addTerms([item.selectionText]);
-  if (item.menuItemId === 'sg-allow-video') await quickAllowVideo(tab.id);
-  if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
 });
 
 let offscreenReady = null;
@@ -150,7 +179,7 @@ async function classifyWithAi(items) {
   await ensureOffscreen();
   // Offscreen documents have no chrome.storage, so the packs travel with the
   // request.
-  const { settings } = await chrome.storage.sync.get('settings');
+  const settings = await getSettings();
   const response = await chrome.runtime.sendMessage({
     target: 'sg-offscreen',
     type: 'sg:ai-classify',
@@ -185,6 +214,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message && message.type === 'sg:context-target-set') {
+    const tabId = sender.tab && sender.tab.id;
+    if (tabId) {
+      if (message.info) pushedTargets.set(tabId, message.info);
+      else pushedTargets.delete(tabId);
+    }
+    return undefined;
+  }
   if (message && message.type === 'sg:add-terms') {
     addTerms(message.terms);
     return undefined;

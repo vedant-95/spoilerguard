@@ -23,8 +23,9 @@ you look at it, and compares them against your active **block packs**. A pack is
 | `channels` | channel names or `@handles` to hide entirely |
 | `regex` | optional advanced patterns |
 | `except` | words that cancel a match (e.g. hide `ragnarok` but not `thor ragnarok`) |
-| `expiresAt` | pack switches itself off on this date — "block until I finish the game" |
-| `maxAgeDays` | only hide uploads younger than this, since an old video usually cannot spoil you |
+| `expiresAt` | pack switches itself off on this date, i.e. "block until I finish the game" |
+| `onlyAfter` | only hide videos uploaded after this date, since an older video usually cannot spoil you |
+| `maxAgeDays` | same idea as a rolling window in days, for hand written packs |
 | `ai` | optional on-device meaning matching: `{ "enabled": true, "topics": [...], "threshold": 0.35 }` |
 
 Aliases are what make this work for spoilers: the God of War pack matches `kratos`, `atreus`,
@@ -39,7 +40,7 @@ Keywords miss titles like *"HE FINALLY MEETS HIS SON"*. Switch on **Also hide ti
 mean the same thing** for a pack and SpoilerGuard compares the meaning of each title against the
 pack's topics using [all-MiniLM-L6-v2](https://huggingface.co/Xenova/all-MiniLM-L6-v2) (quantized,
 ~22 MB) running through transformers.js in an offscreen document. Model and runtime are bundled
-with the extension, so there is no download at runtime and no server call — titles never leave
+with the extension, so there is no download at runtime and no server call: titles never leave
 the browser.
 
 The slider is the match cutoff (default `0.35`; lower hides more). For reference, against the
@@ -58,9 +59,9 @@ YouTube's autoplay preview cannot spoil you either.
 
 Right-click any video:
 
-- **block this channel** — hides everything from it
-- **block keywords from this video…** — pick words out of the title (or type your own) and hide
-  them everywhere, not just on that channel
+- **block this channel**, which hides everything from it
+- **block keywords from this video…**, which lets you pick words out of the title (or type your
+  own) and hide them everywhere, not just on that channel
 - **always allow this video**
 
 Highlighting text anywhere on YouTube also gives you a *block the words "…"* right-click item.
@@ -68,14 +69,16 @@ Highlighting text anywhere on YouTube also gives you a *block the words "…"* r
 ## Scopes
 
 Home feed, search results, watch-page suggestions, Shorts shelves, channel pages, playlists and
-comments can each be toggled independently. Search and comments are off by default — search is
+comments can each be toggled independently. Search and comments are off by default: search is
 where you deliberately go looking, and comment hiding is for people who want to be extra careful.
 
 ## Packs
 
 - Built-in catalog: `packs/index.json`
+- The settings page also reads `packs/index.json` from `main` in this repository, so community
+  packs appear without shipping an extension update
 - Add your own in the settings page, or import a pack by pasting JSON or a link to a `.json` file
-- Export any pack to share it
+- Export any pack to share it, and see [CONTRIBUTING.md](CONTRIBUTING.md) to publish it here
 
 Pack format:
 
