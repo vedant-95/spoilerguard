@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      body {
+        width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SpoilerGuard</h1>
+    <p class="hint" id="status">Loading…</p>
+
+    <label class="row">
+      <input type="checkbox" id="enabled" />
+      <span>Hiding is on</span>
+    </label>
+
+    <div class="actions">
+      <button id="snooze15">Pause 15 min</button>
+      <button id="snooze60">Pause 1 hour</button>
+      <button id="unsnooze">Resume</button>
+    </div>
+
+    <h2>Quick block</h2>
+    <div class="field">
+      <span>Words or a phrase to hide (comma separated)</span>
+      <input type="text" id="quick" placeholder="elden ring, radahn" />
+    </div>
+    <div class="actions">
+      <button class="primary" id="quickAdd">Add to my blocks</button>
+    </div>
+
+    <h2>Block packs</h2>
+    <div id="packs"></div>
+
+    <div class="actions">
+      <button id="openOptions">All settings</button>
+    </div>
+
+    <script src="matcher.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

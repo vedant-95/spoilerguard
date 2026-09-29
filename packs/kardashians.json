@@ -1,0 +1,26 @@
+{
+  "id": "kardashians",
+  "name": "Kardashians",
+  "label": "Kardashian / Jenner content",
+  "description": "Hides Kardashian and Jenner family content, including reality show clips and gossip channels.",
+  "author": "SpoilerGuard",
+  "version": 1,
+  "terms": [
+    "kardashian",
+    "kardashians",
+    "kuwtk",
+    "keeping up with the kardashians",
+    "kim k",
+    "kim kardashian",
+    "khloe",
+    "kourtney",
+    "kris jenner",
+    "kylie jenner",
+    "kendall jenner",
+    "skims",
+    "kylie cosmetics"
+  ],
+  "regex": [],
+  "channels": ["@Kardashians", "@KylieJenner", "@kimkardashian"],
+  "except": []
+}

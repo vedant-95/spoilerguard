@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SpoilerGuard settings</title>
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      body {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 24px 20px 64px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SpoilerGuard settings</h1>
+    <p class="hint">
+      A <strong>block pack</strong> is a list of words, channels and exceptions. Anything on YouTube
+      matching an active pack gets covered until you click Reveal.
+    </p>
+
+    <h2>Where to hide things</h2>
+    <div class="card" id="scope"></div>
+
+    <h2>Behaviour</h2>
+    <div class="card">
+      <div class="grid2">
+        <div class="field">
+          <span>Cover style</span>
+          <select id="coverStyle">
+            <option value="blur">Frosted blur</option>
+            <option value="solid">Solid panel</option>
+          </select>
+        </div>
+        <div class="field">
+          <span>"Reveal" keeps a video visible for (minutes)</span>
+          <input type="number" id="revealMinutes" min="1" max="1440" />
+        </div>
+      </div>
+    </div>
+
+    <h2>Your block packs</h2>
+    <div id="packs"></div>
+    <div class="actions">
+      <button class="primary" id="newPack">New empty pack</button>
+    </div>
+
+    <h2>Add a ready-made pack</h2>
+    <div id="catalog"></div>
+
+    <h2>Import / export</h2>
+    <div class="card">
+      <div class="field">
+        <span>Paste pack JSON, or a link to a pack file</span>
+        <textarea id="importText" placeholder='{"name": "Elden Ring", "terms": ["elden ring", "radahn"]}'></textarea>
+      </div>
+      <div class="actions">
+        <button class="primary" id="importBtn">Import</button>
+        <button id="exportBtn">Export all my packs</button>
+      </div>
+      <p class="hint" id="importStatus"></p>
+    </div>
+
+    <h2>Always-allowed videos</h2>
+    <div class="card">
+      <p class="hint" id="allowCount"></p>
+      <div class="actions"><button class="danger" id="clearAllowed">Clear list</button></div>
+    </div>
+
+    <script src="matcher.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

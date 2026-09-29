@@ -1,0 +1,9 @@
+{
+  "name": "spoilerguard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that covers spoilery or unwanted YouTube thumbnails and titles.",
+  "scripts": {
+    "test": "node --test test/matcher.test.js"
+  }
+}

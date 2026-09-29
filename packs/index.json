@@ -1,0 +1,17 @@
+{
+  "updated": "2026-09-29",
+  "packs": [
+    {
+      "id": "god-of-war",
+      "name": "God of War",
+      "description": "Game spoilers: characters, bosses, weapons and story beats.",
+      "file": "packs/god-of-war.json"
+    },
+    {
+      "id": "kardashians",
+      "name": "Kardashians",
+      "description": "Kardashian / Jenner family and related gossip content.",
+      "file": "packs/kardashians.json"
+    }
+  ]
+}
