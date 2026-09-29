@@ -1,0 +1,101 @@
+/* Dashboard layout for the settings page: tab rail on the left, one page on the right. */
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.rail {
+  width: 240px;
+  flex: none;
+  padding: 20px 12px;
+  border-right: 1px solid var(--line);
+  background: var(--head);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 4px 10px 14px;
+}
+
+.rail .master {
+  margin: 0 10px 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--fg);
+}
+
+.tab:hover {
+  background: var(--card);
+}
+
+.tab[aria-selected='true'] {
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.pane {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 32px 80px;
+  max-width: 900px;
+}
+
+.pane-top {
+  height: 20px;
+  text-align: right;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.page h1 {
+  font-size: 30px;
+  margin: 0 0 6px;
+}
+
+.page h2 {
+  font-size: 21px;
+  margin: 32px 0 6px;
+}
+
+.lede {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 20px;
+  max-width: 70ch;
+}

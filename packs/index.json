@@ -4,13 +4,13 @@
     {
       "id": "god-of-war",
       "name": "God of War",
-      "description": "Game spoilers: characters, bosses, weapons and story beats.",
+      "description": "Hides God of War videos, including the names of people, bosses and big moments in the story.",
       "file": "packs/god-of-war.json"
     },
     {
       "id": "kardashians",
       "name": "Kardashians",
-      "description": "Kardashian / Jenner family and related gossip content.",
+      "description": "Hides the Kardashian and Jenner family and the gossip about them.",
       "file": "packs/kardashians.json"
     }
   ]

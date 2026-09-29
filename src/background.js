@@ -3,8 +3,6 @@ importScripts('matcher.js');
 
 const M = self.SGMatcher;
 
-const STARTER_PACKS = ['packs/god-of-war.json', 'packs/kardashians.json'];
-
 async function getSettings() {
   return M.withDefaults(await M.readSettings());
 }
@@ -13,54 +11,36 @@ async function saveSettings(settings) {
   await M.writeSettings(settings);
 }
 
-async function seedStarterPacks() {
-  const settings = await getSettings();
-  if (settings.packs.length) return;
-  const packs = [];
-  for (const path of STARTER_PACKS) {
-    try {
-      const response = await fetch(chrome.runtime.getURL(path));
-      const pack = M.sanitizePack(await response.json());
-      pack.enabled = false;
-      packs.push(pack);
-    } catch (err) {
-      console.warn('SpoilerGuard: could not load starter pack', path, err);
-    }
-  }
-  settings.packs = packs;
-  await saveSettings(settings);
-}
-
 function createMenus() {
   if (!chrome.contextMenus) return;
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'sg-block-channel',
-      title: 'SpoilerGuard: block this channel',
+      title: 'SpoilerGuard: hide this channel',
       contexts: ['all'],
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
     chrome.contextMenus.create({
       id: 'sg-block-keywords',
-      title: 'SpoilerGuard: block keywords from this video…',
+      title: 'SpoilerGuard: hide words from this video…',
       contexts: ['all'],
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
     chrome.contextMenus.create({
       id: 'sg-block-selection',
-      title: 'SpoilerGuard: block the words "%s"',
+      title: 'SpoilerGuard: hide the words "%s"',
       contexts: ['selection'],
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
     chrome.contextMenus.create({
       id: 'sg-allow-video',
-      title: 'SpoilerGuard: always allow this video',
+      title: 'SpoilerGuard: always show this video',
       contexts: ['all'],
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
     chrome.contextMenus.create({
       id: 'sg-open-options',
-      title: 'SpoilerGuard: manage block packs',
+      title: 'SpoilerGuard: open settings',
       contexts: ['all'],
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
@@ -81,7 +61,6 @@ async function ensureMenus() {
 }
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-  await seedStarterPacks();
   await chrome.storage.session.remove('menusReady');
   await ensureMenus();
   if (details.reason === 'install') chrome.runtime.openOptionsPage();
@@ -94,7 +73,7 @@ ensureMenus();
 async function myBlocksPack(settings) {
   let pack = settings.packs.find((p) => p.id === 'my-blocks');
   if (!pack) {
-    pack = M.sanitizePack({ id: 'my-blocks', name: 'My blocks', label: 'Blocked by you' });
+    pack = M.sanitizePack({ id: 'my-blocks', name: 'My words', label: 'You asked to hide this' });
     settings.packs.unshift(pack);
   }
   pack.enabled = true;
