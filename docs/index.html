@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SpoilerGuard for YouTube</title>
+    <meta
+      name="description"
+      content="SpoilerGuard covers spoilery YouTube thumbnails and titles until you choose to look."
+    />
+    <link rel="icon" href="img/icon48.png" />
+    <style>
+      :root {
+        --bg: #0e0f13;
+        --panel: #171922;
+        --line: #262a38;
+        --fg: #f4f5f8;
+        --muted: #a2a7b8;
+        --accent: #5b8cff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Inter, Roboto, -apple-system, Segoe UI, Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 22px 0;
+        font-weight: 700;
+      }
+
+      header img {
+        width: 30px;
+        height: 30px;
+      }
+
+      header a {
+        margin-left: auto;
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .hero {
+        padding: 40px 0 8px;
+      }
+
+      h1 {
+        font-size: 46px;
+        line-height: 1.15;
+        margin: 0 0 18px;
+        letter-spacing: -0.5px;
+      }
+
+      .story {
+        font-size: 19px;
+        color: var(--muted);
+        max-width: 64ch;
+      }
+
+      .story strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      .cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 28px 0 10px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        color: var(--fg);
+      }
+
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .small {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      section {
+        padding: 56px 0;
+        border-top: 1px solid var(--line);
+        margin-top: 48px;
+      }
+
+      h2 {
+        font-size: 30px;
+        margin: 0 0 8px;
+      }
+
+      .sub {
+        color: var(--muted);
+        margin: 0 0 28px;
+        max-width: 64ch;
+      }
+
+      .shots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      figure {
+        margin: 0;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      figure img {
+        display: block;
+        width: 100%;
+        border-bottom: 1px solid var(--line);
+      }
+
+      figcaption {
+        padding: 12px 16px;
+        font-size: 15px;
+        color: var(--muted);
+      }
+
+      figcaption b {
+        color: var(--fg);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 20px;
+      }
+
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      ol.steps {
+        counter-reset: step;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 14px;
+      }
+
+      ol.steps li {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px 18px 16px 58px;
+        position: relative;
+      }
+
+      ol.steps li::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 18px;
+        top: 16px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        text-align: center;
+        line-height: 26px;
+      }
+
+      footer {
+        border-top: 1px solid var(--line);
+        margin-top: 48px;
+        padding: 28px 0 60px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      footer a {
+        color: var(--accent);
+      }
+
+      @media (max-width: 760px) {
+        h1 {
+          font-size: 34px;
+        }
+        .shots,
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <img src="img/icon48.png" alt="" />
+        <span>SpoilerGuard</span>
+        <a href="https://github.com/vedant-95/spoilerguard">GitHub</a>
+      </header>
+
+      <div class="hero">
+        <h1>YouTube should not tell you the ending.</h1>
+        <p class="story">
+          You look up one walkthrough because you are stuck on a boss. You search for the match you
+          recorded and have not watched yet. That is all it takes. From then on your home page is
+          full of thumbnails shouting the score, the twist and the last scene, and once you have
+          seen it you cannot unsee it.
+          <br /><br />
+          <strong>SpoilerGuard puts a grey panel over those videos before you read them.</strong>
+          The panel tells you why it is there, so you always know what you are missing. When you are
+          ready, you click Show me.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/vedant-95/spoilerguard">Get SpoilerGuard</a>
+          <a class="btn" href="#how">See how it works</a>
+        </div>
+        <p class="small">Free. Works on Chrome. Nothing you watch is sent anywhere.</p>
+      </div>
+
+      <section id="how">
+        <h2>Before and after</h2>
+        <p class="sub">
+          The same YouTube search, with and without SpoilerGuard. The score is right there in the
+          first thumbnail, and then it is not.
+        </p>
+        <div class="shots">
+          <figure>
+            <img src="img/before.png" alt="YouTube search results showing World Cup final scores in the thumbnails" />
+            <figcaption><b>Without SpoilerGuard.</b> The result is spoiled before you read a word.</figcaption>
+          </figure>
+          <figure>
+            <img src="img/after.png" alt="The same results covered by grey SpoilerGuard panels saying World Cup spoilers" />
+            <figcaption><b>With SpoilerGuard.</b> Covered, with a reason and a Show me button.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <h2>Three steps</h2>
+        <p class="sub">It takes about a minute to set up and you never think about it again.</p>
+        <ol class="steps">
+          <li>Add SpoilerGuard to Chrome.</li>
+          <li>Tell it what you do not want to see, or pick a list someone else already wrote.</li>
+          <li>Use YouTube. Anything that matches is covered until you say show me.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>What it can do</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Hide by word</h3>
+            <p>Give it words like "world cup final" and every video that mentions them is covered.</p>
+          </div>
+          <div class="card">
+            <h3>Hide a whole channel</h3>
+            <p>Some channels give it away in the title every time. Right click one and it is gone.</p>
+          </div>
+          <div class="card">
+            <h3>AI powered hiding</h3>
+            <p>Catches sneaky titles that mean the same thing without using any of your words.</p>
+          </div>
+          <div class="card">
+            <h3>Stops on its own</h3>
+            <p>Pick the day you will have caught up and the list switches itself off that day.</p>
+          </div>
+          <div class="card">
+            <h3>Only new videos</h3>
+            <p>An old video cannot give away a match played last night, so it can leave those alone.</p>
+          </div>
+          <div class="card">
+            <h3>Community made lists</h3>
+            <p>Use a list someone else already wrote, and share yours back with one click.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>You are in charge of it</h2>
+        <p class="sub">
+          Choose where it hides things: the home page, search, the videos beside the one you are
+          watching, Shorts, channel pages, playlists and comments. Every cover has Show me for a
+          quick look and Always show for a video you are happy to see.
+        </p>
+        <figure>
+          <img src="img/settings.png" alt="SpoilerGuard settings, with tabs for My lists, Community made lists, Where to hide, Covers and Always show" />
+          <figcaption>Everything lives on one settings page and saves as you type.</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>Your viewing stays yours</h2>
+        <p class="sub">
+          SpoilerGuard works out what to cover on your own computer. It has no account, no sign in,
+          and it never sends what you watch or search for to anybody, including us.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/vedant-95/spoilerguard">Get SpoilerGuard</a>
+        </div>
+      </section>
+
+      <footer>
+        Made by <a href="https://github.com/vedant-95">vedant-95</a>. SpoilerGuard is not made by or
+        connected to YouTube.
+      </footer>
+    </div>
+  </body>
+</html>

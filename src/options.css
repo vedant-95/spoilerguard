@@ -93,6 +93,16 @@ body {
   margin: 32px 0 6px;
 }
 
+.pane .field > input[type='number'],
+.pane .field > input[type='date'],
+.pane .field > select {
+  max-width: 320px;
+}
+
+.pane .card > .field:first-child {
+  margin-top: 0;
+}
+
 .lede {
   font-size: 15px;
   color: var(--muted);

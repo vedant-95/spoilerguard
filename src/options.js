@@ -147,7 +147,7 @@
 
     const topics = el('textarea', {
       value: lines(pack.ai.topics),
-      placeholder: 'the ghost of sparta fights the gods of olympus'
+      placeholder: 'who won the world cup final and how the goals were scored'
     });
     autosave(topics, () => {
       pack.ai.topics = parseLines(topics.value);
@@ -186,7 +186,7 @@
       field(
         'Say in your own words what you want hidden',
         topics,
-        'Write one whole sentence, like "the ghost of sparta fights the gods of olympus". One idea per line. A full sentence works much better than one or two words.'
+        'Write one whole sentence, like "who won the world cup final and how the goals were scored". One idea per line. A full sentence works much better than one or two words.'
       ),
       field(
         'How much should it hide?',
@@ -217,14 +217,14 @@
           on,
           el('span', {
             className: 'subcard-title',
-            textContent: 'Smart hiding'
+            textContent: 'AI powered hiding'
           })
         ])
       ]),
       el('p', {
         className: 'hint',
         textContent:
-          'Your words only catch titles that use those exact words. A title like "HE FINALLY MEETS HIS SON" never says God of War, but it means the same thing. Turn this on and SpoilerGuard hides those too. It is not perfect, so it covers the odd video you did not mind seeing.'
+          'Your words only catch titles that use those exact words. A title like "WHAT A FINISH IN THE LAST MINUTE" never says the final or the score, but it still gives it away. Turn this on and SpoilerGuard hides those too. It is not perfect, so it covers the odd video you did not mind seeing.'
       }),
       body
     ]);
@@ -303,42 +303,39 @@
       renderSharePicker();
     });
 
-    const exportOne = el('button', { textContent: 'Save this list to a file' });
-    exportOne.addEventListener('click', () => download(pack.name, pack));
-
     const body = el('div', { className: 'card-body' }, [
       field(
         'Words to hide',
         terms,
-        'One word or phrase on each line. A video is covered if its title or channel has any of them. Whole words only, so "gow" will not hit "Glasgow".'
+        'One word or phrase on each line, like "world cup final". A video is covered if its title or channel has any of them. Whole words only, so "cup" will not hit "cupcake".'
       ),
       field(
         'Channels to hide',
         channels,
-        'One on each line. Use the channel name or its @handle. Good for channels that spoil things with titles like "HE DID WHAT?!".'
+        'One on each line. Use the channel name or its @handle. Good for channels that give things away with titles like "HE DID WHAT?!".'
       ),
       field(
         'Words that mean keep it',
         except,
-        'One on each line. These win. Hide "ragnarok" but still show anything that says "thor ragnarok".'
+        'One on each line. These win. Hide "final" but still show anything that says "final fantasy".'
       ),
       field(
         'Only hide videos made after this day',
         onlyAfter,
-        'Leave it empty to hide old videos too. A video made before you started the game cannot spoil it, so put the day you started here.'
+        'Leave it empty to hide old videos too. A video made before the match was played cannot give it away, so put that day here.'
       ),
       field(
         'Turn this list off on this day',
         expires,
-        'Leave it empty to keep it on. Put the day you think you will finish, and SpoilerGuard stops hiding this on its own.'
+        'Leave it empty to keep it on. Put the day you will have caught up, and SpoilerGuard stops hiding this on its own.'
       ),
       field(
         'What the cover should say',
         label,
-        'This is all you see instead of the video, so say why it is hidden, like "God of War spoilers".'
+        'This is all you see instead of the video, so say why it is hidden, like "World Cup spoilers".'
       ),
       aiPanel(pack),
-      el('div', { className: 'actions' }, [exportOne, remove])
+      el('div', { className: 'actions' }, [remove])
     ]);
 
     // Collapsed by default so a long list of topics stays readable and it is
@@ -360,7 +357,7 @@
         el('p', {
           className: 'hint',
           textContent:
-            'You have no lists yet. Go to Ready made lists and pick one, or make your own below.'
+            'You have no lists yet. Go to Community made lists and pick one, or make your own below.'
         })
       );
       return;
@@ -408,7 +405,7 @@
       entries = await loadCatalog();
     } catch (err) {
       host.appendChild(
-        el('p', { className: 'hint', textContent: 'No ready made lists right now.' })
+        el('p', { className: 'hint', textContent: 'No community made lists right now.' })
       );
       return;
     }
@@ -507,6 +504,10 @@
   for (const tab of document.querySelectorAll('.tab')) {
     tab.addEventListener('click', () => showPage(tab.dataset.page));
   }
+  window.addEventListener('hashchange', () => {
+    const name = location.hash.slice(1);
+    if (document.getElementById('page-' + name)) showPage(name);
+  });
   showPage(document.getElementById('page-' + location.hash.slice(1)) ? location.hash.slice(1) : 'lists');
 
   /* ---------------------------------------------------------------- */
@@ -517,28 +518,6 @@
     const link = el('a', { href: url, download: M.normalize(name).replace(/ /g, '-') + '.json' });
     link.click();
     URL.revokeObjectURL(url);
-  }
-
-  async function importPayload(raw) {
-    const text = raw.trim();
-    let data;
-    if (/^https?:\/\//i.test(text)) {
-      data = await fetchJson(text);
-    } else {
-      data = JSON.parse(text);
-    }
-    const incoming = Array.isArray(data) ? data : data.packs && Array.isArray(data.packs) ? data.packs : [data];
-    let added = 0;
-    for (const item of incoming) {
-      const pack = M.sanitizePack(item);
-      if (settings.packs.some((p) => p.id === pack.id)) pack.id = M.makePackId(pack.name);
-      settings.packs.push(pack);
-      added += 1;
-    }
-    await save();
-    renderPacks();
-    renderSharePicker();
-    return added;
   }
 
   $('coverStyle').addEventListener('change', (event) => {
@@ -588,16 +567,6 @@
     }
     chrome.tabs.create({ url });
   });
-  $('importBtn').addEventListener('click', async () => {
-    try {
-      const added = await importPayload($('importText').value);
-      $('importStatus').textContent = 'Added ' + added + (added === 1 ? ' list.' : ' lists.');
-      $('importText').value = '';
-    } catch (err) {
-      $('importStatus').textContent = 'That did not work: ' + err.message;
-    }
-  });
-  $('exportBtn').addEventListener('click', () => download('spoilerguard-packs', { packs: settings.packs }));
   $('clearAllowed').addEventListener('click', async () => {
     settings.allowedVideos = [];
     await save();

@@ -18,10 +18,9 @@
           <span id="enabledLabel">On</span>
         </label>
         <button class="tab" data-page="lists">My lists</button>
-        <button class="tab" data-page="ready">Ready made lists</button>
+        <button class="tab" data-page="ready">Community made lists</button>
         <button class="tab" data-page="where">Where to hide</button>
         <button class="tab" data-page="covers">Covers</button>
-        <button class="tab" data-page="backup">Backup and sharing</button>
         <button class="tab" data-page="always">Always show</button>
       </nav>
 
@@ -42,7 +41,7 @@
         </section>
 
         <section class="page" id="page-ready">
-          <h1>Ready made lists</h1>
+          <h1>Community made lists</h1>
           <p class="lede">
             Other people already wrote these, so you do not have to think of every word. Pick one
             and it becomes your own list. You can change it any time.
@@ -52,6 +51,25 @@
             <button id="refreshCatalog">Look for new lists</button>
           </div>
           <p class="hint" id="catalogStatus"></p>
+
+          <h2>Share one of your lists</h2>
+          <p class="hint">
+            If one of your lists works well, you can give it to everyone else. Pick it below and
+            SpoilerGuard fills the form in for you, so you do not type anything twice.
+          </p>
+          <div class="card">
+            <div class="field">
+              <span>Which list do you want to share?</span>
+              <select id="sharePick"></select>
+            </div>
+            <div class="actions">
+              <button class="primary" id="shareBtn">Share this list</button>
+            </div>
+            <p class="hint">
+              This opens a short form with your list already filled in. Press the green button at
+              the bottom of that form to send it.
+            </p>
+          </div>
         </section>
 
         <section class="page" id="page-where">
@@ -67,58 +85,18 @@
           <h1>Covers</h1>
           <p class="lede">This is what the grey panel looks like and how long it stays away.</p>
           <div class="card">
-            <div class="grid2">
-              <div class="field">
-                <span>How the panel looks</span>
-                <select id="coverStyle">
-                  <option value="blur">Patterned</option>
-                  <option value="solid">Plain</option>
-                </select>
-              </div>
-              <div class="field">
-                <span>After you click Show me, keep it visible for this many minutes</span>
-                <input type="number" id="revealMinutes" min="1" max="1440" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="page" id="page-backup">
-          <h1>Backup and sharing</h1>
-          <p class="lede">
-            Save your lists to a file so you can keep them, move them to another computer, or send
-            them to a friend.
-          </p>
-          <div class="card">
             <div class="field">
-              <span>Add a list someone sent you</span>
-              <p class="hint">Paste the text of a list here, or a link to one.</p>
-              <textarea id="importText" placeholder='{"name": "Elden Ring", "terms": ["elden ring", "radahn"]}'></textarea>
+              <span>How the panel looks</span>
+              <select id="coverStyle">
+                <option value="blur">Patterned</option>
+                <option value="solid">Plain</option>
+              </select>
             </div>
-            <div class="actions">
-              <button class="primary" id="importBtn">Add this list</button>
-              <button id="exportBtn">Save all my lists to a file</button>
-            </div>
-            <p class="hint" id="importStatus"></p>
-          </div>
-
-          <h2>Share a list with everybody</h2>
-          <p class="hint">
-            If one of your lists works well, you can offer it to everyone else. Pick it below and
-            SpoilerGuard fills in the form for you, so you do not type anything twice.
-          </p>
-          <div class="card">
             <div class="field">
-              <span>Which list do you want to share?</span>
-              <select id="sharePick"></select>
+              <span>How long a video stays uncovered</span>
+              <p class="hint">In minutes, after you click Show me on a panel.</p>
+              <input type="number" id="revealMinutes" min="1" max="1440" />
             </div>
-            <div class="actions">
-              <button class="primary" id="shareBtn">Share this list</button>
-            </div>
-            <p class="hint">
-              This opens a short form with your list already filled in. Press the green button at
-              the bottom of that form to send it.
-            </p>
           </div>
         </section>
 

@@ -1,16 +1,18 @@
 # SpoilerGuard for YouTube
 
 Covers spoilery or unwanted YouTube thumbnails and titles behind a "privacy cover" until you
-choose to reveal them. Searching for one God of War walkthrough should not hand you the ending in
-your recommendations.
+choose to reveal them. Searching for one walkthrough, or for a match you have not watched yet,
+should not hand you the ending in your recommendations.
+
+Landing page: `docs/index.html` (serve `docs/` with GitHub Pages).
 
 ## Install (no Chrome Web Store needed)
 
 1. Open `chrome://extensions` in Chrome.
 2. Turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick this folder.
-4. The settings page opens. Switch on the **God of War** pack (or add your own words), then open
-   YouTube.
+4. The settings page opens. Add a list from **Community made lists** (or write your own words),
+   then open YouTube.
 
 ## How it decides what to hide
 
@@ -77,8 +79,8 @@ where you deliberately go looking, and comment hiding is for people who want to 
 - Built-in catalog: `packs/index.json`
 - The settings page also reads `packs/index.json` from `main` in this repository, so community
   packs appear without shipping an extension update
-- Add your own in the settings page, or import a pack by pasting JSON or a link to a `.json` file
-- Export any pack to share it, and see [CONTRIBUTING.md](CONTRIBUTING.md) to publish it here
+- Add your own in the settings page, or share one of yours from **Community made lists**, which
+  opens a prefilled issue form; see [CONTRIBUTING.md](CONTRIBUTING.md) for the file format
 
 Pack format:
 
