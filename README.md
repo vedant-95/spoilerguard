@@ -37,11 +37,22 @@ A covered item shows `Hidden · God of War related content` with **Reveal** (tem
 minutes) and **Always allow** (permanent, that video only). The cover also swallows hover, so
 YouTube's autoplay preview cannot spoil you either.
 
+## Quick blocking from the page
+
+Right-click any video:
+
+- **block this channel** — hides everything from it
+- **block keywords from this video…** — pick words out of the title (or type your own) and hide
+  them everywhere, not just on that channel
+- **always allow this video**
+
+Highlighting text anywhere on YouTube also gives you a *block the words "…"* right-click item.
+
 ## Scopes
 
 Home feed, search results, watch-page suggestions, Shorts shelves, channel pages, playlists and
-comments can each be toggled independently. Search is off by default, since that is where you
-deliberately go looking.
+comments can each be toggled independently. Search and comments are off by default — search is
+where you deliberately go looking, and comment hiding is for people who want to be extra careful.
 
 ## Packs
 

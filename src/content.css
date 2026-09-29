@@ -86,6 +86,95 @@ html:not([dark]) .sg-cover[data-sg-style='solid'] {
   color: #fff;
 }
 
+.sg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  font-family: Roboto, Arial, sans-serif;
+}
+
+.sg-modal {
+  width: min(480px, 92vw);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 20px;
+  border-radius: 14px;
+  background: #1d1d22;
+  color: #f2f2f5;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+html:not([dark]) .sg-modal {
+  background: #fff;
+  color: #16161a;
+}
+
+.sg-modal h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.sg-modal-quote {
+  margin: 0 0 4px;
+  font-size: 13px;
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.sg-modal-help {
+  margin: 0 0 12px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.sg-chiplist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.sg-chip {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.sg-chip-on {
+  background: #3b6ef5;
+  border-color: #3b6ef5;
+  color: #fff;
+  opacity: 1;
+}
+
+.sg-input {
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 140, 0.5);
+  background: transparent;
+  color: inherit;
+}
+
+.sg-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 ytd-comment-thread-renderer.sg-hidden-item,
 ytd-comment-view-model.sg-hidden-item {
   min-height: 64px;

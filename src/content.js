@@ -285,6 +285,123 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* keyword picker                                                      */
+  /* ------------------------------------------------------------------ */
+
+  const STOPWORDS = new Set(
+    ('the a an and or of to in on for with is are was were this that my your his her their it ' +
+      'you we they i how why what when who all new best top vs vs. official full video part ep ' +
+      'episode gameplay ft feat')
+      .split(' ')
+  );
+
+  function keywordCandidates(info) {
+    const suggestions = [];
+    const words = M.normalize(info.title).split(' ');
+    const seen = new Set();
+    const push = (value) => {
+      const key = M.normalize(value);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      suggestions.push(value);
+    };
+
+    for (let i = 0; i < words.length - 1; i += 1) {
+      if (STOPWORDS.has(words[i]) || STOPWORDS.has(words[i + 1])) continue;
+      push(words[i] + ' ' + words[i + 1]);
+    }
+    for (const word of words) {
+      if (word.length < 3 || STOPWORDS.has(word) || /^\d+$/.test(word)) continue;
+      push(word);
+    }
+    return suggestions.slice(0, 14);
+  }
+
+  function closePicker() {
+    const existing = document.querySelector('.sg-modal-backdrop');
+    if (existing) existing.remove();
+  }
+
+  function openKeywordPicker(info) {
+    closePicker();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sg-modal-backdrop';
+    backdrop.addEventListener('click', (event) => {
+      if (event.target === backdrop) closePicker();
+    });
+
+    const modal = document.createElement('div');
+    modal.className = 'sg-modal';
+
+    const heading = document.createElement('h3');
+    heading.textContent = 'Block keywords from this video';
+    const quote = document.createElement('p');
+    quote.className = 'sg-modal-quote';
+    quote.textContent = info.title;
+
+    const help = document.createElement('p');
+    help.className = 'sg-modal-help';
+    help.textContent = 'Anything you tick will be hidden everywhere on YouTube from now on.';
+
+    const list = document.createElement('div');
+    list.className = 'sg-chiplist';
+    const chosen = new Set();
+
+    for (const candidate of keywordCandidates(info)) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'sg-chip';
+      chip.textContent = candidate;
+      chip.addEventListener('click', () => {
+        if (chosen.has(candidate)) chosen.delete(candidate);
+        else chosen.add(candidate);
+        chip.classList.toggle('sg-chip-on', chosen.has(candidate));
+      });
+      list.appendChild(chip);
+    }
+
+    const custom = document.createElement('input');
+    custom.type = 'text';
+    custom.className = 'sg-input';
+    custom.placeholder = 'or type your own words, comma separated';
+
+    const block = document.createElement('button');
+    block.type = 'button';
+    block.className = 'sg-btn sg-btn-primary';
+    block.textContent = 'Block these';
+    block.addEventListener('click', () => {
+      const terms = Array.from(chosen).concat(
+        custom.value
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean)
+      );
+      if (terms.length) chrome.runtime.sendMessage({ type: 'sg:add-terms', terms });
+      closePicker();
+    });
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'sg-btn';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', closePicker);
+
+    const actions = document.createElement('div');
+    actions.className = 'sg-modal-actions';
+    actions.appendChild(cancel);
+    actions.appendChild(block);
+
+    modal.appendChild(heading);
+    modal.appendChild(quote);
+    modal.appendChild(help);
+    modal.appendChild(list);
+    modal.appendChild(custom);
+    modal.appendChild(actions);
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+  }
+
+  /* ------------------------------------------------------------------ */
   /* wiring                                                              */
   /* ------------------------------------------------------------------ */
 
@@ -301,6 +418,10 @@
     if (message && message.type === 'sg:context-target') {
       sendResponse(lastContextTarget ? readTile(lastContextTarget) : null);
       return true;
+    }
+    if (message && message.type === 'sg:pick-keywords') {
+      const info = lastContextTarget ? readTile(lastContextTarget) : null;
+      if (info && info.title) openKeywordPicker(info);
     }
     if (message && message.type === 'sg:rescan') {
       loadState().then(rescanAll);

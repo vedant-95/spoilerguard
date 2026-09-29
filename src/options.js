@@ -10,7 +10,7 @@
     watchSidebar: 'Suggested videos next to the one you are watching',
     shorts: 'Shorts shelves',
     channel: 'Channel pages',
-    comments: 'Comments (they spoil too)',
+    comments: 'Comments (off by default — turn on if you want to be extra careful)',
     playlist: 'Playlists'
   };
 

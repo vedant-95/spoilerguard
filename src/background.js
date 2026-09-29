@@ -41,6 +41,18 @@ function createMenus() {
       documentUrlPatterns: ['https://www.youtube.com/*']
     });
     chrome.contextMenus.create({
+      id: 'sg-block-keywords',
+      title: 'SpoilerGuard: block keywords from this video…',
+      contexts: ['all'],
+      documentUrlPatterns: ['https://www.youtube.com/*']
+    });
+    chrome.contextMenus.create({
+      id: 'sg-block-selection',
+      title: 'SpoilerGuard: block the words "%s"',
+      contexts: ['selection'],
+      documentUrlPatterns: ['https://www.youtube.com/*']
+    });
+    chrome.contextMenus.create({
       id: 'sg-allow-video',
       title: 'SpoilerGuard: always allow this video',
       contexts: ['all'],
@@ -63,18 +75,32 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 chrome.runtime.onStartup.addListener(createMenus);
 
-async function quickBlockChannel(tabId) {
-  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
-  if (!info || !(info.channel || info.handle)) return;
-  const settings = await getSettings();
+async function myBlocksPack(settings) {
   let pack = settings.packs.find((p) => p.id === 'my-blocks');
   if (!pack) {
     pack = M.sanitizePack({ id: 'my-blocks', name: 'My blocks', label: 'Blocked by you' });
     settings.packs.unshift(pack);
   }
+  pack.enabled = true;
+  return pack;
+}
+
+async function addTerms(terms) {
+  const clean = (terms || []).map((t) => String(t).trim()).filter(Boolean);
+  if (!clean.length) return;
+  const settings = await getSettings();
+  const pack = await myBlocksPack(settings);
+  for (const term of clean) if (!pack.terms.includes(term)) pack.terms.push(term);
+  await saveSettings(settings);
+}
+
+async function quickBlockChannel(tabId) {
+  const info = await chrome.tabs.sendMessage(tabId, { type: 'sg:context-target' });
+  if (!info || !(info.channel || info.handle)) return;
+  const settings = await getSettings();
+  const pack = await myBlocksPack(settings);
   const value = info.handle || info.channel;
   if (!pack.channels.includes(value)) pack.channels.push(value);
-  pack.enabled = true;
   await saveSettings(settings);
 }
 
@@ -89,11 +115,19 @@ async function quickAllowVideo(tabId) {
 chrome.contextMenus.onClicked.addListener(async (item, tab) => {
   if (!tab || !tab.id) return;
   if (item.menuItemId === 'sg-block-channel') await quickBlockChannel(tab.id);
+  if (item.menuItemId === 'sg-block-keywords') {
+    await chrome.tabs.sendMessage(tab.id, { type: 'sg:pick-keywords' }).catch(() => {});
+  }
+  if (item.menuItemId === 'sg-block-selection') await addTerms([item.selectionText]);
   if (item.menuItemId === 'sg-allow-video') await quickAllowVideo(tab.id);
   if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message && message.type === 'sg:add-terms') {
+    addTerms(message.terms);
+    return undefined;
+  }
   if (message && message.type === 'sg:count' && sender.tab && sender.tab.id) {
     const count = Number(message.count) || 0;
     chrome.action.setBadgeBackgroundColor({ color: '#3b6ef5' });

@@ -19,7 +19,7 @@
       watchSidebar: true,
       shorts: true,
       channel: true,
-      comments: true,
+      comments: false,
       playlist: true
     },
     packs: [],
