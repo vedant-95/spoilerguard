@@ -200,7 +200,7 @@
     const cover = document.createElement('div');
     cover.className = 'sg-cover';
     cover.dataset.sgStyle = settings.coverStyle;
-    cover.title = 'SpoilerGuard \u2014 hidden by ' + (verdict.reason || 'a rule');
+    cover.title = 'SpoilerGuard hid this because of ' + (verdict.reason || 'one of your rules');
 
     const label = document.createElement('div');
     label.className = 'sg-cover-label';

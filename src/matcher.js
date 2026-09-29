@@ -120,6 +120,15 @@
     return Number(match[1]) * DAYS_PER_UNIT[unit];
   }
 
+  /*
+   * A pack can limit itself to recent uploads either by a cut-off date
+   * (onlyAfter) or, for hand written pack files, a rolling window in days.
+   */
+  function ageLimitDays(pack, now) {
+    if (pack.onlyAfter) return Math.max(0, (now - pack.onlyAfter) / 86400000);
+    return pack.maxAgeDays || 0;
+  }
+
   function packIsActive(pack, now) {
     if (!pack || pack.enabled === false) return false;
     if (pack.expiresAt && pack.expiresAt < now) return false;
@@ -154,7 +163,8 @@
     for (const pack of activePacks(settings, at)) {
       const exception = matchesAnyTerm(haystack, pack.except);
       if (exception) continue;
-      if (pack.maxAgeDays && ageDays !== null && ageDays > pack.maxAgeDays) continue;
+      const limit = ageLimitDays(pack, at);
+      if (limit && ageDays !== null && ageDays > limit) continue;
 
       const channelHit =
         channelMatches(channelName, pack.channels) ||
@@ -213,6 +223,7 @@
       enabled: input.enabled !== false,
       expiresAt: Number(input.expiresAt) || 0,
       maxAgeDays: Number(input.maxAgeDays) || 0,
+      onlyAfter: Number(input.onlyAfter) || 0,
       ai: {
         enabled: Boolean(input.ai && input.ai.enabled),
         topics: list(input.ai && input.ai.topics),
@@ -265,6 +276,7 @@
 
   const api = {
     DEFAULT_SETTINGS,
+    ageLimitDays,
     readSettings,
     writeSettings,
     normalize,

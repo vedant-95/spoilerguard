@@ -7,7 +7,10 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
-  "host_permissions": ["https://www.youtube.com/*"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://raw.githubusercontent.com/vedant-95/spoilerguard/*"
+  ],
   "optional_host_permissions": ["https://*/*"],
   "background": {
     "service_worker": "src/background.js"
