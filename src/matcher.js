@@ -251,11 +251,12 @@
     const local = await chrome.storage.local.get('settings');
     if (local.settings) return local.settings;
     const synced = await chrome.storage.sync.get('settings');
-    if (synced.settings) {
-      await chrome.storage.local.set({ settings: synced.settings });
-      return synced.settings;
-    }
-    return null;
+    if (!synced.settings) return null;
+    // Another context may have migrated and been edited while sync was read.
+    const fresh = await chrome.storage.local.get('settings');
+    if (fresh.settings) return fresh.settings;
+    await chrome.storage.local.set({ settings: synced.settings });
+    return synced.settings;
   }
 
   async function writeSettings(settings) {

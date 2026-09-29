@@ -126,8 +126,13 @@
     });
 
     const name = el('input', { type: 'text', className: 'card-title', value: pack.name });
+    // A pack without a name is dropped on load, so ignore an emptied field.
     autosave(name, () => {
-      pack.name = name.value;
+      const value = name.value.trim();
+      if (value) pack.name = value;
+    });
+    name.addEventListener('blur', () => {
+      if (!name.value.trim()) name.value = pack.name;
     });
 
     const head = el('div', { className: 'card-head' }, [

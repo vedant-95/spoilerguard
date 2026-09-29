@@ -110,7 +110,9 @@ async function addTerms(terms) {
   await saveSettings(settings);
 }
 
-let pushedTarget = null;
+const pushedTargets = new Map();
+
+chrome.tabs.onRemoved.addListener((tabId) => pushedTargets.delete(tabId));
 
 async function contextTarget(tabId) {
   try {
@@ -119,7 +121,7 @@ async function contextTarget(tabId) {
   } catch (err) {
     console.warn('SpoilerGuard: could not read the right-clicked tile', err);
   }
-  return pushedTarget;
+  return pushedTargets.get(tabId) || null;
 }
 
 async function quickBlockChannel(tabId) {
@@ -213,7 +215,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message && message.type === 'sg:context-target-set') {
-    pushedTarget = message.info || null;
+    const tabId = sender.tab && sender.tab.id;
+    if (tabId) {
+      if (message.info) pushedTargets.set(tabId, message.info);
+      else pushedTargets.delete(tabId);
+    }
     return undefined;
   }
   if (message && message.type === 'sg:add-terms') {
