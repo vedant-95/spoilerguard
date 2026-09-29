@@ -96,8 +96,12 @@
     return (values || []).join('\n');
   }
 
+  function plural(count, one, many) {
+    return count + ' ' + (count === 1 ? one : many);
+  }
+
   function countLabel(pack) {
-    return pack.terms.length + ' words, ' + pack.channels.length + ' channels';
+    return plural(pack.terms.length, 'word', 'words') + ', ' + plural(pack.channels.length, 'channel', 'channels');
   }
 
   function parseLines(text) {
@@ -455,7 +459,8 @@
   function renderAllowed() {
     const count = settings.allowedVideos.length;
     $('allowCount').textContent = count
-      ? 'There are ' + count + ' videos here. They will never be covered.'
+      ? (count === 1 ? 'One video is here. It' : 'There are ' + count + ' videos here. They') +
+        ' will never be covered.'
       : 'Nothing here yet. Click "Always show" on a cover to add a video.';
   }
 
