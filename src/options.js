@@ -41,21 +41,35 @@
 
   // Text fields used to persist only on blur, so typing and closing the tab
   // threw the edit away.
+  const pending = new Set();
+
+  function flushPending() {
+    if (!pending.size) return;
+    for (const run of Array.from(pending)) run();
+  }
+
+  // Closing the tab kills the debounce timer, so flush while the page is still
+  // alive.
+  window.addEventListener('pagehide', flushPending);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushPending();
+  });
+
   function autosave(input, apply) {
     let timer = 0;
     const run = () => {
+      clearTimeout(timer);
+      pending.delete(run);
       apply();
       save();
     };
     input.addEventListener('input', () => {
       status('Saving…');
       clearTimeout(timer);
+      pending.add(run);
       timer = setTimeout(run, 400);
     });
-    input.addEventListener('change', () => {
-      clearTimeout(timer);
-      run();
-    });
+    input.addEventListener('change', run);
   }
 
   function el(tag, props, children) {
