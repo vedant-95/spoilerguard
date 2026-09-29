@@ -77,7 +77,7 @@ test('maxAgeDays keeps older uploads visible', () => {
 
 test('sanitizePack fills in AI defaults', () => {
   const pack = M.sanitizePack({ name: 'X' });
-  assert.deepEqual(pack.ai, { enabled: false, topics: [], threshold: 0.45 });
+  assert.deepEqual(pack.ai, { enabled: false, topics: [], threshold: 0.35 });
   const configured = M.sanitizePack({ name: 'X', ai: { enabled: true, topics: ['god of war'] } });
   assert.equal(configured.ai.enabled, true);
   assert.deepEqual(configured.ai.topics, ['god of war']);
