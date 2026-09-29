@@ -57,6 +57,8 @@
   ].join(',');
 
   const VIEWS_RE = /\b(views?|watching)\b/i;
+  // Newer tiles print a bare count: "13M", "34K", "1,204".
+  const COUNT_RE = /^\d[\d.,]*\s*[kmb]?$/i;
   const AGE_RE = /\bago\b|\b(premier|streamed|scheduled)/i;
   const DURATION_RE = /^\s*(\d+:)?\d{1,2}:\d{2}\s*$/;
 
@@ -131,9 +133,14 @@
     });
 
     for (const chunk of chunks) {
-      if (!meta.views && VIEWS_RE.test(chunk)) meta.views = chunk;
-      else if (!meta.age && AGE_RE.test(chunk)) meta.age = chunk;
-      else if (!meta.channel && !VIEWS_RE.test(chunk) && !AGE_RE.test(chunk)) meta.channel = chunk;
+      const isViews = VIEWS_RE.test(chunk) || COUNT_RE.test(chunk);
+      if (!meta.views && isViews) {
+        meta.views = COUNT_RE.test(chunk) ? chunk + ' views' : chunk;
+      } else if (!meta.age && AGE_RE.test(chunk)) {
+        meta.age = chunk;
+      } else if (!meta.channel && !isViews && !AGE_RE.test(chunk)) {
+        meta.channel = chunk;
+      }
     }
 
     const durationEl = el.querySelector(DURATION_SELECTORS);

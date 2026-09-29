@@ -70,8 +70,7 @@ function aiPacks(settings) {
   );
 }
 
-async function classify(items) {
-  const { settings } = await chrome.storage.sync.get('settings');
+async function classify(settings, items) {
   const packs = aiPacks(settings || {});
   if (!packs.length) return [];
 
@@ -109,7 +108,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || message.target !== 'sg-offscreen') return undefined;
 
   if (message.type === 'sg:ai-classify') {
-    classify(message.items)
+    classify(message.settings, message.items)
       .then((results) => sendResponse({ ok: true, results }))
       .catch((error) => sendResponse({ ok: false, error: String(error) }));
     return true;

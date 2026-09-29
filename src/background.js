@@ -148,9 +148,13 @@ async function ensureOffscreen() {
 
 async function classifyWithAi(items) {
   await ensureOffscreen();
+  // Offscreen documents have no chrome.storage, so the packs travel with the
+  // request.
+  const { settings } = await chrome.storage.sync.get('settings');
   const response = await chrome.runtime.sendMessage({
     target: 'sg-offscreen',
     type: 'sg:ai-classify',
+    settings,
     items
   });
   if (!response || !response.ok) throw new Error((response && response.error) || 'no response');
