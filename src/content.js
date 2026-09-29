@@ -393,7 +393,11 @@
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'sg:ai-classify',
-        items: batch.map(([id, entry]) => ({ id, title: entry.info.title }))
+        items: batch.map(([id, entry]) => ({
+          id,
+          title: entry.info.title,
+          age: entry.info.age
+        }))
       });
       if (response && response.ok) {
         const byId = new Map(batch);

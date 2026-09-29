@@ -15,6 +15,7 @@ env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('src/vendor/');
 env.backends.onnx.wasm.numThreads = 1;
 
 const MODEL = 'all-MiniLM-L6-v2';
+const M = self.SGMatcher;
 
 let extractorPromise = null;
 const topicCache = new Map();
@@ -54,9 +55,13 @@ function cosine(a, b) {
   return sum;
 }
 
-/** A pack with no topics still needs something to compare against. */
-function defaultTopic(pack) {
-  return [pack.name].concat((pack.terms || []).slice(0, 8)).join(', ');
+/**
+ * A pack with no topics still needs something to compare against. Each term
+ * becomes its own topic: one long comma list embeds into a blurry average that
+ * scores well below a single focused phrase.
+ */
+function defaultTopics(pack) {
+  return [pack.name].concat((pack.terms || []).slice(0, 8));
 }
 
 function aiPacks(settings) {
@@ -70,13 +75,20 @@ function aiPacks(settings) {
   );
 }
 
+/** The pack's age limit and exception words apply to AI matches too. */
+function packAllows(pack, title, ageDays) {
+  if (pack.maxAgeDays && ageDays !== null && ageDays > pack.maxAgeDays) return false;
+  const haystack = M.padded(title);
+  return !(pack.except || []).some((term) => M.matchesTerm(haystack, term));
+}
+
 async function classify(settings, items) {
   const packs = aiPacks(settings || {});
   if (!packs.length) return [];
 
   const topicVectors = [];
   for (const pack of packs) {
-    const topics = pack.ai.topics.length ? pack.ai.topics : [defaultTopic(pack)];
+    const topics = pack.ai.topics.length ? pack.ai.topics : defaultTopics(pack);
     for (const topic of topics) {
       topicVectors.push({ pack, topic, vector: await embedTopic(topic) });
     }
@@ -85,9 +97,11 @@ async function classify(settings, items) {
   const results = [];
   for (const item of items) {
     if (!item || !item.title) continue;
+    const ageDays = M.parseAgeDays(item.age);
     const titleVector = await embedTitle(item.title);
     let best = null;
     for (const entry of topicVectors) {
+      if (!packAllows(entry.pack, item.title, ageDays)) continue;
       const score = cosine(titleVector, entry.vector);
       if (score < entry.pack.ai.threshold) continue;
       if (!best || score > best.score) best = { entry, score };
