@@ -110,6 +110,60 @@
       save();
     });
 
+    const maxAge = el('input', {
+      type: 'number',
+      min: '0',
+      value: pack.maxAgeDays || ''
+    });
+    maxAge.addEventListener('change', () => {
+      pack.maxAgeDays = Math.max(0, Number(maxAge.value) || 0);
+      save();
+    });
+
+    const aiOn = el('input', { type: 'checkbox', checked: Boolean(pack.ai && pack.ai.enabled) });
+    const aiTopics = el('textarea', { value: lines(pack.ai.topics) });
+    const aiThreshold = el('input', {
+      type: 'range',
+      min: '0.2',
+      max: '0.6',
+      step: '0.01',
+      value: String(pack.ai.threshold)
+    });
+    const aiThresholdValue = el('span', {
+      className: 'pill',
+      textContent: 'match cutoff ' + pack.ai.threshold + ' (lower hides more)'
+    });
+
+    aiOn.addEventListener('change', () => {
+      pack.ai.enabled = aiOn.checked;
+      save();
+      if (aiOn.checked) chrome.runtime.sendMessage({ type: 'sg:ai-warmup' });
+    });
+    aiTopics.addEventListener('change', () => {
+      pack.ai.topics = parseLines(aiTopics.value);
+      save();
+    });
+    aiThreshold.addEventListener('input', () => {
+      pack.ai.threshold = Number(aiThreshold.value);
+      aiThresholdValue.textContent =
+        'match cutoff ' + pack.ai.threshold + ' (lower hides more)';
+    });
+    aiThreshold.addEventListener('change', save);
+
+    const aiBlock = el('div', { className: 'subcard' }, [
+      el('label', { className: 'row' }, [
+        aiOn,
+        el('span', { textContent: 'Also hide titles that only mean the same thing (on-device AI)' })
+      ]),
+      el('p', {
+        className: 'hint',
+        textContent:
+          'Catches titles that avoid your words entirely. Runs inside your browser — nothing is uploaded. Slightly slower and it does over-hide sometimes, so tune the slider.'
+      }),
+      field('Topics to compare against (one per line, defaults to the pack name)', aiTopics),
+      el('div', { className: 'row' }, [aiThreshold, aiThresholdValue])
+    ]);
+
     const expires = el('input', {
       type: 'date',
       value: pack.expiresAt ? new Date(pack.expiresAt).toISOString().slice(0, 10) : ''
@@ -137,6 +191,8 @@
       field('Channels to hide (name or @handle, one per line)', channels),
       field('Never hide when the title contains (one per line)', except),
       field('Switch this pack off automatically after', expires),
+      field('Only hide videos younger than this many days (blank = any age)', maxAge),
+      aiBlock,
       el('div', { className: 'actions' }, [exportOne, remove])
     ]);
   }

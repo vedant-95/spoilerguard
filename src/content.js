@@ -39,6 +39,24 @@
     '.ytd-channel-name'
   ].join(',');
 
+  const METADATA_SELECTORS = [
+    '.yt-content-metadata-view-model-wiz__metadata-text',
+    '.yt-content-metadata-view-model__metadata-text',
+    '#metadata-line span',
+    '.inline-metadata-item'
+  ].join(',');
+
+  const DURATION_SELECTORS = [
+    'ytd-thumbnail-overlay-time-status-renderer #text',
+    '.badge-shape-wiz__text',
+    '.ytd-thumbnail-overlay-time-status-renderer',
+    'badge-shape'
+  ].join(',');
+
+  const VIEWS_RE = /\b(views?|watching)\b/i;
+  const AGE_RE = /\bago\b|\b(premier|streamed|scheduled)/i;
+  const DURATION_RE = /^\s*(\d+:)?\d{1,2}:\d{2}\s*$/;
+
   let settings = M.withDefaults(null);
   let reveals = {};
   let hiddenCount = 0;
@@ -92,9 +110,35 @@
     return (el.getAttribute('title') || el.textContent || '').replace(/\s+/g, ' ').trim();
   }
 
+  /**
+   * Modern lockup tiles print the channel name as a plain span rather than a
+   * link, so fall back to the first metadata chunk that is not views or age.
+   */
+  function readMetadata(el) {
+    const meta = { channel: '', views: '', age: '', duration: '' };
+    const chunks = [];
+    el.querySelectorAll(METADATA_SELECTORS).forEach((node) => {
+      const value = textOf(node);
+      if (value && !chunks.includes(value)) chunks.push(value);
+    });
+
+    for (const chunk of chunks) {
+      if (!meta.views && VIEWS_RE.test(chunk)) meta.views = chunk;
+      else if (!meta.age && AGE_RE.test(chunk)) meta.age = chunk;
+      else if (!meta.channel && !VIEWS_RE.test(chunk) && !AGE_RE.test(chunk)) meta.channel = chunk;
+    }
+
+    const durationEl = el.querySelector(DURATION_SELECTORS);
+    const duration = textOf(durationEl);
+    if (DURATION_RE.test(duration)) meta.duration = duration.trim();
+
+    return meta;
+  }
+
   function readTile(el) {
     const titleEl = el.querySelector(TITLE_SELECTORS);
     const channelEl = el.querySelector(CHANNEL_SELECTORS);
+    const meta = readMetadata(el);
     const link = el.querySelector('a#thumbnail, a[href*="/watch?v="], a[href*="/shorts/"]');
     const href = link ? link.getAttribute('href') || '' : '';
     const channelLink = el.querySelector('a[href^="/@"], a[href^="/channel/"], a[href^="/c/"]');
@@ -110,8 +154,11 @@
 
     return {
       title: textOf(titleEl),
-      channel: textOf(channelEl),
+      channel: textOf(channelEl) || meta.channel,
       handle: handleMatch ? handleMatch[1] : '',
+      views: meta.views,
+      age: meta.age,
+      duration: meta.duration,
       videoId
     };
   }
@@ -150,6 +197,15 @@
     label.className = 'sg-cover-label';
     label.textContent = verdict.label || 'Hidden content';
 
+    const facts = [info.duration, info.views, info.age].filter(Boolean).join(' \u00b7 ');
+    const meta = document.createElement('div');
+    meta.className = 'sg-cover-meta';
+    meta.textContent = facts;
+
+    const reason = document.createElement('div');
+    reason.className = 'sg-cover-reason';
+    reason.textContent = verdict.reason ? 'matched ' + verdict.reason : '';
+
     const actions = document.createElement('div');
     actions.className = 'sg-cover-actions';
 
@@ -179,6 +235,8 @@
     if (info.videoId) actions.appendChild(always);
 
     cover.appendChild(label);
+    if (facts) cover.appendChild(meta);
+    if (verdict.reason) cover.appendChild(reason);
     cover.appendChild(actions);
 
     cover.addEventListener('click', (event) => {
@@ -241,11 +299,16 @@
     if (reveals[revealKey] && reveals[revealKey] > Date.now()) return;
 
     const verdict = M.evaluate(info, settings);
-    if (verdict.blocked) cover(el, verdict, info);
+    if (verdict.blocked) {
+      cover(el, verdict, info);
+      return;
+    }
+    queueForAi(el, info);
   }
 
   function processComment(el) {
     if (settings.scope.comments === false) return;
+    if (el.parentElement && el.parentElement.closest(COMMENT_SELECTORS)) return;
     const body = el.querySelector('#content-text');
     const author = el.querySelector('#author-text');
     const text = textOf(body);
@@ -271,12 +334,68 @@
 
   function rescanAll() {
     hiddenCount = 0;
+    aiQueue.clear();
+    aiSeen.clear();
     document.querySelectorAll('[data-sg-key]').forEach((el) => {
       delete el.dataset.sgKey;
       uncover(el);
     });
     hiddenCount = 0;
     scan(document);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* on-device AI layer                                                  */
+  /* ------------------------------------------------------------------ */
+
+  const aiQueue = new Map();
+  const aiSeen = new Set();
+  let aiTimer = null;
+  let aiBusy = false;
+
+  function aiEnabled() {
+    return M.activePacks(settings).some((pack) => pack.ai && pack.ai.enabled);
+  }
+
+  function queueForAi(el, info) {
+    if (!aiEnabled() || !info.title) return;
+    const id = el.dataset.sgKey;
+    if (!id || aiSeen.has(id)) return;
+    aiQueue.set(id, { el, info });
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(flushAiQueue, 300);
+  }
+
+  async function flushAiQueue() {
+    if (aiBusy || !aiQueue.size) return;
+    aiBusy = true;
+    const batch = Array.from(aiQueue.entries()).slice(0, 40);
+    for (const [id] of batch) {
+      aiQueue.delete(id);
+      aiSeen.add(id);
+    }
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'sg:ai-classify',
+        items: batch.map(([id, entry]) => ({ id, title: entry.info.title }))
+      });
+      if (response && response.ok) {
+        const byId = new Map(batch);
+        for (const result of response.results) {
+          const entry = byId.get(result.id);
+          if (!entry || entry.el.dataset.sgKey !== result.id) continue;
+          if (!entry.el.isConnected) continue;
+          cover(entry.el, { blocked: true, ...result }, entry.info);
+        }
+      }
+    } catch (err) {
+      // The worker may be asleep or the model still loading; the next scan
+      // re-queues anything that is still visible.
+    } finally {
+      aiBusy = false;
+      if (aiQueue.size) aiTimer = setTimeout(flushAiQueue, 300);
+    }
   }
 
   let scanTimer = null;

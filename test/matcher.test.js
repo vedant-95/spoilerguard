@@ -59,6 +59,30 @@ test('allowed channels are never hidden', () => {
   assert.equal(M.evaluate({ title: 'Kratos', channel: 'Safe Channel' }, s).blocked, false);
 });
 
+test('parses YouTube upload ages', () => {
+  assert.equal(M.parseAgeDays('3 years ago'), 1095);
+  assert.equal(M.parseAgeDays('2 days ago'), 2);
+  assert.equal(M.parseAgeDays('Streamed 1 week ago'), 7);
+  assert.equal(M.parseAgeDays('1.2M views'), null);
+});
+
+test('maxAgeDays keeps older uploads visible', () => {
+  const s = M.withDefaults({
+    packs: [M.sanitizePack({ name: 'Match spoilers', terms: ['arsenal'], maxAgeDays: 7 })]
+  });
+  assert.equal(M.evaluate({ title: 'Arsenal highlights', age: '2 days ago' }, s).blocked, true);
+  assert.equal(M.evaluate({ title: 'Arsenal highlights', age: '3 years ago' }, s).blocked, false);
+  assert.equal(M.evaluate({ title: 'Arsenal highlights' }, s).blocked, true);
+});
+
+test('sanitizePack fills in AI defaults', () => {
+  const pack = M.sanitizePack({ name: 'X' });
+  assert.deepEqual(pack.ai, { enabled: false, topics: [], threshold: 0.45 });
+  const configured = M.sanitizePack({ name: 'X', ai: { enabled: true, topics: ['god of war'] } });
+  assert.equal(configured.ai.enabled, true);
+  assert.deepEqual(configured.ai.topics, ['god of war']);
+});
+
 test('broken user regex does not throw', () => {
   const s = M.withDefaults({ packs: [M.sanitizePack({ name: 'Bad', regex: ['([a-z'] })] });
   assert.equal(M.evaluate({ title: 'anything' }, s).blocked, false);

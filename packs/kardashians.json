@@ -21,6 +21,17 @@
     "kylie cosmetics"
   ],
   "regex": [],
-  "channels": ["@Kardashians", "@KylieJenner", "@kimkardashian"],
-  "except": []
+  "channels": [
+    "@Kardashians",
+    "@KylieJenner",
+    "@kimkardashian"
+  ],
+  "except": [],
+  "ai": {
+    "enabled": false,
+    "topics": [
+      "kardashian jenner family, reality tv celebrity gossip, drama"
+    ],
+    "threshold": 0.35
+  }
 }

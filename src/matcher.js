@@ -86,6 +86,24 @@
     return null;
   }
 
+  const AGE_UNITS = {
+    second: 1 / 86400,
+    minute: 1 / 1440,
+    hour: 1 / 24,
+    day: 1,
+    week: 7,
+    month: 30.4,
+    year: 365
+  };
+
+  /** "3 years ago" -> 1095. Returns null when the text is not an age. */
+  function parseAgeDays(text) {
+    if (!text) return null;
+    const match = normalize(text).match(/(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago/);
+    if (!match) return null;
+    return Number(match[1]) * AGE_UNITS[match[2]];
+  }
+
   function packIsActive(pack, now) {
     if (!pack || pack.enabled === false) return false;
     if (pack.expiresAt && pack.expiresAt < now) return false;
@@ -115,9 +133,12 @@
 
     if (channelMatches(channelName, settings.allowedChannels)) return { blocked: false };
 
+    const ageDays = parseAgeDays(item.age);
+
     for (const pack of activePacks(settings, at)) {
       const exception = matchesAnyTerm(haystack, pack.except);
       if (exception) continue;
+      if (pack.maxAgeDays && ageDays !== null && ageDays > pack.maxAgeDays) continue;
 
       const channelHit =
         channelMatches(channelName, pack.channels) ||
@@ -175,6 +196,12 @@
       author: String(input.author || ''),
       enabled: input.enabled !== false,
       expiresAt: Number(input.expiresAt) || 0,
+      maxAgeDays: Number(input.maxAgeDays) || 0,
+      ai: {
+        enabled: Boolean(input.ai && input.ai.enabled),
+        topics: list(input.ai && input.ai.topics),
+        threshold: Number(input.ai && input.ai.threshold) || 0.35
+      },
       terms: list(input.terms),
       regex: list(input.regex),
       channels: list(input.channels),
@@ -186,7 +213,13 @@
   function withDefaults(stored) {
     const settings = Object.assign({}, DEFAULT_SETTINGS, stored || {});
     settings.scope = Object.assign({}, DEFAULT_SETTINGS.scope, (stored && stored.scope) || {});
-    settings.packs = Array.isArray(settings.packs) ? settings.packs : [];
+    settings.packs = (Array.isArray(settings.packs) ? settings.packs : []).map((pack) => {
+      try {
+        return sanitizePack(pack);
+      } catch (err) {
+        return null;
+      }
+    }).filter(Boolean);
     settings.allowedVideos = Array.isArray(settings.allowedVideos) ? settings.allowedVideos : [];
     settings.allowedChannels = Array.isArray(settings.allowedChannels)
       ? settings.allowedChannels
@@ -199,6 +232,7 @@
     normalize,
     padded,
     matchesTerm,
+    parseAgeDays,
     evaluate,
     activePacks,
     sanitizePack,

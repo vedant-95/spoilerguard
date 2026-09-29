@@ -33,6 +33,7 @@ async function seedStarterPacks() {
 }
 
 function createMenus() {
+  if (!chrome.contextMenus) return;
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'sg-block-channel',
@@ -74,6 +75,10 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 });
 
 chrome.runtime.onStartup.addListener(createMenus);
+
+// Unpacked reloads do not reliably fire onInstalled, so rebuild the menus
+// whenever the worker boots; removeAll() keeps this idempotent.
+createMenus();
 
 async function myBlocksPack(settings) {
   let pack = settings.packs.find((p) => p.id === 'my-blocks');
@@ -123,7 +128,59 @@ chrome.contextMenus.onClicked.addListener(async (item, tab) => {
   if (item.menuItemId === 'sg-open-options') chrome.runtime.openOptionsPage();
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+let offscreenReady = null;
+
+async function ensureOffscreen() {
+  if (!chrome.offscreen) throw new Error('offscreen API unavailable');
+  if (offscreenReady) return offscreenReady;
+  offscreenReady = (async () => {
+    const existing = await chrome.runtime.getContexts({ contextTypes: ['OFFSCREEN_DOCUMENT'] });
+    if (!existing.length) {
+      await chrome.offscreen.createDocument({
+        url: 'src/offscreen.html',
+        reasons: ['WORKERS'],
+        justification: 'Runs the on-device title classifier so titles never leave the browser.'
+      });
+    }
+  })();
+  return offscreenReady;
+}
+
+async function classifyWithAi(items) {
+  await ensureOffscreen();
+  const response = await chrome.runtime.sendMessage({
+    target: 'sg-offscreen',
+    type: 'sg:ai-classify',
+    items
+  });
+  if (!response || !response.ok) throw new Error((response && response.error) || 'no response');
+  return response.results;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message && message.target === 'sg-offscreen') return undefined;
+
+  if (message && message.type === 'sg:ai-classify') {
+    classifyWithAi(message.items)
+      .then((results) => sendResponse({ ok: true, results }))
+      .catch((error) => {
+        offscreenReady = null;
+        sendResponse({ ok: false, error: String(error) });
+      });
+    return true;
+  }
+
+  if (message && message.type === 'sg:ai-warmup') {
+    ensureOffscreen()
+      .then(() => chrome.runtime.sendMessage({ target: 'sg-offscreen', type: 'sg:ai-warmup' }))
+      .then((response) => sendResponse(response || { ok: false }))
+      .catch((error) => {
+        offscreenReady = null;
+        sendResponse({ ok: false, error: String(error) });
+      });
+    return true;
+  }
+
   if (message && message.type === 'sg:add-terms') {
     addTerms(message.terms);
     return undefined;

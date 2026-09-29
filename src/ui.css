@@ -137,6 +137,21 @@ label.row {
   margin-top: 10px;
 }
 
+.subcard {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+}
+
+.subcard .hint {
+  margin: 4px 0 8px;
+}
+
+input[type='range'] {
+  flex: 1;
+}
+
 .pill {
   font-size: 12px;
   color: var(--muted);

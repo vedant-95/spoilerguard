@@ -3,7 +3,10 @@
   "name": "SpoilerGuard for YouTube",
   "version": "0.1.0",
   "description": "Covers spoilery or unwanted YouTube thumbnails and titles until you choose to reveal them.",
-  "permissions": ["storage", "contextMenus"],
+  "permissions": ["storage", "contextMenus", "offscreen"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
   "host_permissions": ["https://www.youtube.com/*"],
   "optional_host_permissions": ["https://*/*"],
   "background": {

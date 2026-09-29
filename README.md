@@ -24,6 +24,8 @@ you look at it, and compares them against your active **block packs**. A pack is
 | `regex` | optional advanced patterns |
 | `except` | words that cancel a match (e.g. hide `ragnarok` but not `thor ragnarok`) |
 | `expiresAt` | pack switches itself off on this date — "block until I finish the game" |
+| `maxAgeDays` | only hide uploads younger than this, since an old video usually cannot spoil you |
+| `ai` | optional on-device meaning matching: `{ "enabled": true, "topics": [...], "threshold": 0.35 }` |
 
 Aliases are what make this work for spoilers: the God of War pack matches `kratos`, `atreus`,
 `mimir`, `valkyrie queen` and so on, so clickbait titles that never name the game still get covered.
@@ -31,9 +33,24 @@ Aliases are what make this work for spoilers: the God of War pack matches `krato
 Matching is done locally in your browser. Nothing is sent anywhere, and no YouTube account access
 is needed.
 
+### On-device AI matching (opt-in, per pack)
+
+Keywords miss titles like *"HE FINALLY MEETS HIS SON"*. Switch on **Also hide titles that only
+mean the same thing** for a pack and SpoilerGuard compares the meaning of each title against the
+pack's topics using [all-MiniLM-L6-v2](https://huggingface.co/Xenova/all-MiniLM-L6-v2) (quantized,
+~22 MB) running through transformers.js in an offscreen document. Model and runtime are bundled
+with the extension, so there is no download at runtime and no server call — titles never leave
+the browser.
+
+The slider is the match cutoff (default `0.35`; lower hides more). For reference, against the
+topic *god of war ragnarok kratos atreus*: "Kratos and the boy: the final scene" scores 0.49,
+"THAT ending broke me..." 0.28, "How to cook rice perfectly" 0.12. If the model fails to load,
+keyword matching carries on unaffected.
+
 ## Covers
 
-A covered item shows `Hidden · God of War related content` with **Reveal** (temporary, default 10
+A covered item shows `Hidden · God of War related content`, the video's duration / views / upload
+age when YouTube exposes them, and why it matched (`matched keyword: kratos`), with **Reveal** (temporary, default 10
 minutes) and **Always allow** (permanent, that video only). The cover also swallows hover, so
 YouTube's autoplay preview cannot spoil you either.
 
@@ -82,6 +99,7 @@ Layout:
 
 - `src/matcher.js` — pure matching engine, shared by every surface, unit tested
 - `src/content.js` — finds YouTube tiles/comments and covers them
-- `src/background.js` — first-run setup, context menus, badge counter
+- `src/background.js` — first-run setup, context menus, badge counter, offscreen AI bridge
+- `src/offscreen.*` — runs the embedding model; `src/vendor/`, `models/` — bundled runtime + model
 - `src/popup.*`, `src/options.*` — UI
 - `packs/` — built-in block packs

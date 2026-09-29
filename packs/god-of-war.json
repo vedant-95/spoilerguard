@@ -34,5 +34,15 @@
   ],
   "regex": [],
   "channels": [],
-  "except": ["thor ragnarok", "marvel"]
+  "except": [
+    "thor ragnarok",
+    "marvel"
+  ],
+  "ai": {
+    "enabled": false,
+    "topics": [
+      "god of war ragnarok spoilers, kratos, atreus, boss fight, ending"
+    ],
+    "threshold": 0.35
+  }
 }
