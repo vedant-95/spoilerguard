@@ -123,10 +123,12 @@
   /*
    * A pack can limit itself to recent uploads either by a cut-off date
    * (onlyAfter) or, for hand written pack files, a rolling window in days.
+   * Returns null when the pack hides uploads of any age. A cut-off date in the
+   * future gives a negative limit, which no upload can satisfy.
    */
   function ageLimitDays(pack, now) {
-    if (pack.onlyAfter) return Math.max(0, (now - pack.onlyAfter) / 86400000);
-    return pack.maxAgeDays || 0;
+    if (pack.onlyAfter) return (now - pack.onlyAfter) / 86400000;
+    return pack.maxAgeDays || null;
   }
 
   function packIsActive(pack, now) {
@@ -164,7 +166,7 @@
       const exception = matchesAnyTerm(haystack, pack.except);
       if (exception) continue;
       const limit = ageLimitDays(pack, at);
-      if (limit && ageDays !== null && ageDays > limit) continue;
+      if (limit !== null && ageDays !== null && ageDays > limit) continue;
 
       const channelHit =
         channelMatches(channelName, pack.channels) ||

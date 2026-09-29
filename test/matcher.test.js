@@ -97,6 +97,17 @@ test('onlyAfter hides uploads newer than the chosen date', () => {
   assert.equal(M.evaluate({ title: 'Kratos returns', age: '4 weeks ago' }, s, now).blocked, false);
 });
 
+test('an onlyAfter date in the future hides nothing that exists yet', () => {
+  const now = Date.now();
+  const s = M.withDefaults({
+    packs: [
+      M.sanitizePack({ name: 'Game spoilers', terms: ['kratos'], onlyAfter: now + 90 * 86400000 })
+    ]
+  });
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '1 hour ago' }, s, now).blocked, false);
+  assert.equal(M.evaluate({ title: 'Kratos returns', age: '8 years ago' }, s, now).blocked, false);
+});
+
 test('sanitizePack fills in AI defaults', () => {
   const pack = M.sanitizePack({ name: 'X' });
   assert.deepEqual(pack.ai, { enabled: false, topics: [], threshold: 0.35 });

@@ -78,7 +78,7 @@ function aiPacks(settings) {
 /** The pack's age limit and exception words apply to AI matches too. */
 function packAllows(pack, title, ageDays) {
   const limit = M.ageLimitDays(pack, Date.now());
-  if (limit && ageDays !== null && ageDays > limit) return false;
+  if (limit !== null && ageDays !== null && ageDays > limit) return false;
   const haystack = M.padded(title);
   return !(pack.except || []).some((term) => M.matchesTerm(haystack, term));
 }
