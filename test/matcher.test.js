@@ -126,3 +126,22 @@ test('a fresh install starts with no lists, so nothing is hidden', () => {
   assert.deepEqual(s.packs, []);
   assert.equal(M.evaluate({ title: 'Kratos kills a god' }, s).blocked, false);
 });
+
+test('a word also finds its singular or plural', () => {
+  const s = M.withDefaults({
+    packs: [M.sanitizePack({ name: 'Money', terms: ['stocks', 'world cup final', 'penalty'] })]
+  });
+  assert.equal(M.evaluate({ title: 'Uber Stock Is Falling' }, s).blocked, true);
+  assert.equal(M.evaluate({ title: 'Best stocks to buy' }, s).blocked, true);
+  assert.equal(M.evaluate({ title: 'Every World Cup Finals goal' }, s).blocked, true);
+  assert.equal(M.evaluate({ title: 'All the penalties' }, s).blocked, true);
+  assert.equal(M.evaluate({ title: 'Stockholm travel guide' }, s).blocked, false);
+});
+
+test('plural forms do not break short or tricky words', () => {
+  const s = M.withDefaults({ packs: [M.sanitizePack({ name: 'X', terms: ['news', 'gow', 'chess'] })] });
+  assert.equal(M.evaluate({ title: 'What is new this week' }, s).blocked, false);
+  assert.equal(M.evaluate({ title: 'Glasgow street food' }, s).blocked, false);
+  assert.equal(M.evaluate({ title: 'Ches the dog' }, s).blocked, false);
+  assert.equal(M.evaluate({ title: 'Chess openings' }, s).blocked, true);
+});
