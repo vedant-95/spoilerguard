@@ -31,6 +31,7 @@
   function render() {
     $('status').textContent = statusText();
     $('enabled').checked = settings.enabled;
+    $('scopeSearch').checked = settings.scope.search !== false;
 
     const list = $('packs');
     list.textContent = '';
@@ -67,6 +68,10 @@
 
   $('enabled').addEventListener('change', (event) => {
     settings.enabled = event.target.checked;
+    save();
+  });
+  $('scopeSearch').addEventListener('change', (event) => {
+    settings.scope.search = event.target.checked;
     save();
   });
   $('snooze15').addEventListener('click', () => snooze(15));
