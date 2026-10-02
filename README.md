@@ -97,8 +97,13 @@ Pack format:
 ## Development
 
 ```bash
-npm test   # unit tests for the matching engine
+npm test          # unit tests for the matching engine
+npm run package   # builds spoilerguard-<version>.zip for the Chrome Web Store
 ```
+
+Chrome Web Store listing text, permission reasons and images are in `store/` (start with
+`store/LISTING.md`). The privacy policy is `docs/privacy.html`, published at
+https://vedant-95.github.io/spoilerguard/privacy.html.
 
 Layout:
 

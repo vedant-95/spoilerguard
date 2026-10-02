@@ -367,7 +367,7 @@
   }
 
   function queueForAi(el, info) {
-    if (!aiEnabled() || !info.title) return;
+    if (!aiEnabled() || !info.title || !M.aiMayCover(info, settings)) return;
     const id = el.dataset.sgKey;
     if (!id || aiSeen.has(id)) return;
     aiQueue.set(id, { el, info });
@@ -399,6 +399,7 @@
           const entry = byId.get(result.id);
           if (!entry || entry.el.dataset.sgKey !== result.id) continue;
           if (!entry.el.isConnected) continue;
+          if (!M.aiMayCover(entry.info, settings)) continue;
           cover(entry.el, { blocked: true, ...result }, entry.info);
         }
       }
