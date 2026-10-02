@@ -10,6 +10,7 @@ import { pipeline, env } from './vendor/transformers.min.js';
 
 env.allowLocalModels = true;
 env.allowRemoteModels = false;
+env.useBrowserCache = false;
 env.localModelPath = chrome.runtime.getURL('models/');
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('src/vendor/');
 env.backends.onnx.wasm.numThreads = 1;
@@ -56,12 +57,13 @@ function cosine(a, b) {
 }
 
 /**
- * A pack with no topics still needs something to compare against. Each term
- * becomes its own topic: one long comma list embeds into a blurry average that
- * scores well below a single focused phrase.
+ * The pack name and words are always compared too, next to any sentences the
+ * user wrote. Each term is its own topic: one long comma list embeds into a
+ * blurry average that scores well below a single focused phrase.
  */
-function defaultTopics(pack) {
-  return [pack.name].concat((pack.terms || []).slice(0, 8));
+function packTopics(pack) {
+  const topics = pack.ai.topics.concat([pack.name], (pack.terms || []).slice(0, 8));
+  return Array.from(new Set(topics.map((t) => String(t || '').trim()).filter(Boolean)));
 }
 
 function aiPacks(settings) {
@@ -89,8 +91,7 @@ async function classify(settings, items) {
 
   const topicVectors = [];
   for (const pack of packs) {
-    const topics = pack.ai.topics.length ? pack.ai.topics : defaultTopics(pack);
-    for (const topic of topics) {
+    for (const topic of packTopics(pack)) {
       topicVectors.push({ pack, topic, vector: await embedTopic(topic) });
     }
   }

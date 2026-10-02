@@ -43,10 +43,26 @@
     return ' ' + normalize(text) + ' ';
   }
 
+  /** "stocks" also finds "stock", "final" also finds "finals". */
+  function wordForms(word) {
+    const forms = [word];
+    if (word.length < 3 || /\d$/.test(word)) return forms;
+    if (/ies$/.test(word) && word.length > 4) forms.push(word.slice(0, -3) + 'y');
+    else if (/[^aeiou]y$/.test(word)) forms.push(word.slice(0, -1) + 'ies');
+    if (/(ss|us|is|ws)$/.test(word)) forms.push(word + 'es');
+    else if (/s$/.test(word)) {
+      if (word.length > 3) forms.push(word.slice(0, -1));
+    } else if (/(x|ch|sh)$/.test(word)) forms.push(word + 'es');
+    else forms.push(word + 's');
+    return forms;
+  }
+
   function matchesTerm(haystack, term) {
     const needle = normalize(term);
     if (!needle) return false;
-    return haystack.includes(' ' + needle + ' ');
+    const cut = needle.lastIndexOf(' ') + 1;
+    const head = needle.slice(0, cut);
+    return wordForms(needle.slice(cut)).some((last) => haystack.includes(' ' + head + last + ' '));
   }
 
   function matchesAnyTerm(haystack, terms) {
