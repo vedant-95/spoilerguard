@@ -5,7 +5,7 @@
 .sg-cover {
   position: absolute;
   inset: 0;
-  z-index: 2200;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,7 +55,7 @@ html:not([dark]) .sg-cover[data-sg-style='blur'] {
 }
 
 .sg-cover-label::before {
-  content: 'Hidden \00b7 ';
+  content: 'Hidden \00b7\0020';
   opacity: 0.6;
   font-weight: 500;
 }

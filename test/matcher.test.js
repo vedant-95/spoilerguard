@@ -145,3 +145,11 @@ test('plural forms do not break short or tricky words', () => {
   assert.equal(M.evaluate({ title: 'Ches the dog' }, s).blocked, false);
   assert.equal(M.evaluate({ title: 'Chess openings' }, s).blocked, true);
 });
+
+test('AI may not cover while switched off, paused, or for an allowed channel', () => {
+  const item = { title: 'He finally meets his son', channel: 'Good Channel' };
+  assert.equal(M.aiMayCover(item, settings), true);
+  assert.equal(M.aiMayCover(item, { ...settings, enabled: false }), false);
+  assert.equal(M.aiMayCover(item, { ...settings, snoozeUntil: Date.now() + 60000 }), false);
+  assert.equal(M.aiMayCover(item, { ...settings, allowedChannels: ['Good Channel'] }), false);
+});

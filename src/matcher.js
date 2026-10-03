@@ -158,6 +158,14 @@
     return (settings.packs || []).filter((pack) => packIsActive(pack, at));
   }
 
+  /** Whether the AI layer may cover this item: SpoilerGuard is on and the channel is not allowed. */
+  function aiMayCover(item, settings, now) {
+    const at = typeof now === 'number' ? now : Date.now();
+    if (!settings || settings.enabled === false) return false;
+    if (settings.snoozeUntil && settings.snoozeUntil > at) return false;
+    return !channelMatches(item.channel || '', settings.allowedChannels);
+  }
+
   /**
    * @param {{title?: string, channel?: string, handle?: string, extra?: string}} item
    * @param {object} settings
@@ -302,6 +310,7 @@
     matchesTerm,
     parseAgeDays,
     evaluate,
+    aiMayCover,
     activePacks,
     sanitizePack,
     makePackId,
